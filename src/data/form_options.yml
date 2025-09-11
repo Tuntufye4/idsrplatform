@@ -1,0 +1,142 @@
+sex:
+  - Male
+  - Female
+
+age:
+  - 1   
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7 
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13 
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 25
+  - 27
+  - 28 
+  - 29
+  - 30 
+  - 34
+  - 36  
+  - 49
+  - 50
+
+case_classification:
+  - Confirmed
+  - Probable
+  - Suspected
+
+final_case_classification:
+  - Confirmed
+  - Probable
+  - Suspected
+  - Not a Case
+
+outcome:
+  - Alive
+  - Dead
+  - Unknown
+
+specimen_collected:
+  - Yes
+  - No
+
+specimen_sent_to_lab:
+  - Yes
+  - No
+
+vaccination_status:
+  - Vaccinated
+  - Not Vaccinated
+  - Unknown
+
+known_contact:
+  - Yes
+  - No
+  - Unknown
+
+travel_history:
+  - Yes
+  - No
+
+travel_destination:
+  - Zambia
+  - Tanzania
+  - Mozambique
+  - South Africa
+  - Local
+
+diagnosis_type:
+  - Clinical
+  - Laboratory
+  - Epidemiological Link
+
+disease:
+  - Cholera
+  - Measles
+  - Malaria
+  - Covid-19
+
+lab_name:
+  - National Health Lab
+  - District Hospital Lab
+  - Blantyre Reference Lab
+
+lab_result:
+  - Positive
+  - Negative
+  - Pending
+
+specimen_type:
+  - Blood
+  - Stool
+  - Swab
+  - Urine
+
+reporting_week_number:
+  - 1
+  - 2   
+  - 3
+  - 4
+
+year:
+  - 2021 
+  - 2022
+  - 2023
+  - 2024
+  - 2025
+
+district_code:
+  - CHI
+  - BLT
+  - MZB
+  - LLW
+  - NKB
+  - ZOM
+
+health_facility_code:
+  - 001
+  - 002
+  - 003
+  - 004
+  - 005
+
+designation:
+  - Surveillance Officer
+  - Clinical Officer
+  - Health Surveillance Assistant
+
+form_completed_by:
+  - hello
+  - cccc
+  - Pppppp
