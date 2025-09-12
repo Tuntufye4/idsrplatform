@@ -86,10 +86,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* App Bar */}
-      <header className="bg-indigo-600 text-white p-4 shadow-md">
-        <h1 className="text-2xl font-bold">IDSR Dashboard</h1>
-      </header>
-
       <main className="p-6">
         {/* Stat cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
