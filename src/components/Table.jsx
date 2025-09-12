@@ -12,15 +12,7 @@ const TablePage = () => {
     <div className="min-h-screen flex flex-col">
       {/* App Bar */}
       <header className="bg-white text-gray-800 px-6 py-4 shadow-md flex items-center justify-between">
-        <h1 className="text-xl font-bold">IDSR Dashboard</h1>
-        <nav>
-          <ul className="flex space-x-6">
-            <li className="hover:text-blue-600 cursor-pointer">Home</li>
-            <li className="hover:text-blue-600 cursor-pointer">Table</li>
-            <li className="hover:text-blue-600 cursor-pointer">Charts</li>
-            <li className="hover:text-blue-600 cursor-pointer">Map</li>
-          </ul>
-        </nav>
+        
       </header>
 
       {/* Table Content */}
