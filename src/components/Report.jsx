@@ -112,7 +112,7 @@ const Report = () => {
             {Object.entries(groupBy('vaccination_status')).map(([s, count]) => (
               <tr key={s}><td className="border p-1">{s}</td><td className="border p-1">{count}</td></tr>
             ))}
-          </tbody>
+          </tbody>   
         </table>
 
         <h3 className="text-lg mt-4 font-semibold">5. Lab Testing</h3>

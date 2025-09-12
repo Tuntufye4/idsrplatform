@@ -11,9 +11,9 @@ const TablePage = () => {
 
   return (
     <div>  
-      <h2 className="text-2xl font-bold mb-4">Case Records</h2>
+      
       <table className="w-full border-collapse">
-        <thead>
+        <thead>   
           <tr className="bg-gray-100">
             <th className="border p-2">Name</th>
             <th className="border p-2">Gender</th>   

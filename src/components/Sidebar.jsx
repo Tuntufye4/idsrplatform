@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   HomeIcon,
   MapIcon,
-  ClipboardDocumentIcon,
+  ClipboardDocumentIcon,   
   TableCellsIcon,   
   DocumentChartBarIcon,
   ChartBarIcon
@@ -13,7 +13,7 @@ const navItems = [
   { path: '/', label: 'Dashboard', icon: <HomeIcon className="w-5 h-5 mr-3" /> },
   { path: '/map', label: 'Map', icon: <MapIcon className="w-5 h-5 mr-3" /> },
   { path: '/form', label: 'Report Case', icon: <ClipboardDocumentIcon className="w-5 h-5 mr-3" /> },
-  { path: '/table', label: 'Table', icon: <TableCellsIcon className="w-5 h-5 mr-3" /> },
+  { path: '/table', label: 'Cases List', icon: <TableCellsIcon className="w-5 h-5 mr-3" /> },
   { path: '/report', label: 'Report', icon: <DocumentChartBarIcon className="w-5 h-5 mr-3" /> }
 ];
 
