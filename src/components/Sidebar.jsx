@@ -13,7 +13,7 @@ const navItems = [
   { path: '/', label: 'Dashboard'},
   { path: '/map', label: 'Map'},
   { path: '/form', label: 'Report Case'},
-  { path: '/table', label: 'Cases List'},
+  { path: '/table', label: 'Cases List'},   
   { path: '/report', label: 'Report'}
 ];    
 
