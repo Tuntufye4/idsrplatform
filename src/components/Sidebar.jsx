@@ -10,12 +10,12 @@ import {
 } from '@heroicons/react/24/outline';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: <HomeIcon className="w-5 h-5 mr-3" /> },
-  { path: '/map', label: 'Map', icon: <MapIcon className="w-5 h-5 mr-3" /> },
-  { path: '/form', label: 'Report Case', icon: <ClipboardDocumentIcon className="w-5 h-5 mr-3" /> },
-  { path: '/table', label: 'Cases List', icon: <TableCellsIcon className="w-5 h-5 mr-3" /> },
-  { path: '/report', label: 'Report', icon: <DocumentChartBarIcon className="w-5 h-5 mr-3" /> }
-];
+  { path: '/', label: 'Dashboard'},
+  { path: '/map', label: 'Map'},
+  { path: '/form', label: 'Report Case'},
+  { path: '/table', label: 'Cases List'},
+  { path: '/report', label: 'Report'}
+];    
 
 const Sidebar = () => (
   <div className="w-64 h-screen bg-white shadow-md px-6 py-4">
