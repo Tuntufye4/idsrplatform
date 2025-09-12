@@ -4,7 +4,7 @@ import {
   Bar,
   XAxis,
   YAxis,
-  Tooltip,  
+  Tooltip,
   LineChart,
   Line,
   ResponsiveContainer,
