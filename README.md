@@ -9,7 +9,7 @@
 
 ## Project Link
 
-[IDSR Dashboard](https://idsr5.vercel.app/)
+[Idsr](https://idsr5.vercel.app/)
 
 
 
