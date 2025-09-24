@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import yaml from 'js-yaml';
 import rawFormOptions from '../data/form_options.yml?raw';
@@ -24,6 +24,21 @@ const Form = () => {
   const [villages, setVillages] = useState([]);
   const [traditionalAuthorities, setTraditionalAuthorities] = useState([]);
   const [facilities, setFacilities] = useState([]);
+
+  // Collapsible section states
+  const [openSections, setOpenSections] = useState({
+    patientInfo: true,
+    location: true,
+    clinical: true,
+    lab: true,
+    exposure: true,
+    reporter: true,
+    metadata: true
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   useEffect(() => {
     try {
@@ -99,44 +114,63 @@ const Form = () => {
     </div>
   );
 
+  // Collapsible Section with smooth animation
+  const Section = ({ title, children, sectionKey }) => {
+    const contentRef = useRef(null);
+    return (
+      <div className="bg-gray-50 p-4 rounded shadow-sm">
+        <button
+          type="button"
+          onClick={() => toggleSection(sectionKey)}
+          className="w-full text-left font-semibold text-lg mb-2 flex justify-between items-center"
+        >
+          {title}
+          <span>{openSections[sectionKey] ? '-' : '+'}</span>
+        </button>
+        <div
+          ref={contentRef}
+          className="overflow-hidden transition-all duration-300"
+          style={{ maxHeight: openSections[sectionKey] ? `${contentRef.current?.scrollHeight}px` : '0px' }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <form onSubmit={handleSubmit} className="max-w-6xl mx-auto p-6 bg-white rounded shadow space-y-6">
       <h2 className="text-2xl font-bold mb-4">IDSR Case Form</h2>
 
-      {/* Patient Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Section title="Patient Info" sectionKey="patientInfo">
         {renderInput('patient_id', 'Patient ID')}
         {renderInput('full_name', 'Full Name')}
         {renderSelect('sex', 'Sex', formOptions.sex)}
         {renderSelect('age', 'Age', formOptions.age)}
         {renderInput('date_of_birth', 'Date of Birth', 'date')}
         {renderInput('national_id', 'National ID')}
-      </div>
+      </Section>
 
-      {/* Location */}
-      <h3 className="text-lg font-semibold">Location</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Section title="Location" sectionKey="location">
         {renderSelect('district', 'District', healthStructure.districts?.map(d => d.name))}
         {renderSelect('traditional_authority', 'Traditional Authority', traditionalAuthorities)}
         {renderSelect('village', 'Village', villages)}
         {renderSelect('health_facility', 'Health Facility', facilities)}
         {renderInput('region', 'Region')}
-      </div>
+      </Section>
 
-      {/* Clinical Info */}
-      <h3 className="text-lg font-semibold">Clinical Info</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Section title="Clinical Info" sectionKey="clinical">
         {renderInput('date_onset_symptoms', 'Date of Onset', 'date')}
         {renderInput('date_first_seen', 'Date First Seen', 'date')}
         {renderSelect('disease', 'Disease', formOptions.disease)}
         {renderSelect('case_classification', 'Case Classification', formOptions.case_classification)}
         {renderSelect('outcome', 'Outcome', formOptions.outcome)}
         {renderInput('date_of_death', 'Date of Death', 'date')}
-      </div>
+      </Section>
 
-      {/* Lab Info */}
-      <h3 className="text-lg font-semibold">Lab Information</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Section title="Lab Information" sectionKey="lab">
         {renderSelect('diagnosis_type', 'Diagnosis Type', formOptions.diagnosis_type)}
         {renderSelect('specimen_collected', 'Specimen Collected', formOptions.specimen_collected)}
         {renderInput('date_specimen_collected', 'Date Specimen Collected', 'date')}
@@ -146,32 +180,26 @@ const Form = () => {
         {renderSelect('lab_result', 'Lab Result', formOptions.lab_result)}
         {renderInput('date_result_received', 'Date Result Received', 'date')}
         {renderSelect('final_case_classification', 'Final Case Classification', formOptions.final_case_classification)}
-      </div>
+      </Section>
 
-      {/* Exposure & Vaccination */}
-      <h3 className="text-lg font-semibold">Exposure & Vaccination</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Section title="Exposure & Vaccination" sectionKey="exposure">
         {renderSelect('vaccination_status', 'Vaccination Status', formOptions.vaccination_status)}
         {renderInput('date_last_vaccination', 'Date of Last Vaccination', 'date')}
         {renderSelect('contact_with_confirmed_case', 'Known Contact with Case', formOptions.known_contact)}
         {renderSelect('recent_travel_history', 'Travel History', formOptions.travel_history)}
         {renderSelect('travel_destination', 'Travel Destination', formOptions.travel_destination)}
-      </div>
+      </Section>
 
-      {/* Reporter Info */}
-      <h3 className="text-lg font-semibold">Reporter Info</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Section title="Reporter Info" sectionKey="reporter">
         {renderInput('reporter_name', 'Reporter Name')}
         {renderSelect('designation', 'Designation', formOptions.designation)}
         {renderInput('contact_number', 'Contact Number')}
         {renderInput('date_reported', 'Date Reported', 'date')}
         {renderInput('form_completed_by', 'Form Completed By', 'text', true)}
         {renderInput('date_form_completed', 'Form Completed Date', 'date')}
-      </div>
+      </Section>
 
-      {/* Metadata */}
-      <h3 className="text-lg font-semibold">Metadata</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Section title="Metadata" sectionKey="metadata">
         {renderSelect('reporting_week_number', 'Reporting Week Number', formOptions.reporting_week_number)}
         {renderSelect('year', 'Reporting Year', formOptions.year)}
         {renderSelect('health_facility_code', 'Health Facility Code', formOptions.health_facility_code)}
@@ -183,10 +211,10 @@ const Form = () => {
             name="observations"
             value={formData.observations}
             onChange={handleChange}
-            className="w-full border rounded p-2"
+            className="w-full border rounded p-2 min-h-[100px] resize-none"
           />
         </div>
-      </div>
+      </Section>
 
       <button type="submit" className="mt-6 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
         Submit
@@ -196,3 +224,4 @@ const Form = () => {
 };
 
 export default Form;
+  
