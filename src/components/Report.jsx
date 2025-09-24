@@ -1,5 +1,3 @@
-// src/components/Report.jsx
-
 import React, { useEffect, useState, useRef } from 'react';
 import dayjs from 'dayjs';
 import api from '../api/api';
@@ -41,132 +39,154 @@ const Report = () => {
     html2pdf().set(opt).from(element).save();
   };
 
-  const groupBy = (key) => {
-    return filtered.reduce((acc, curr) => {
+  const groupBy = (key) =>
+    filtered.reduce((acc, curr) => {
       const val = curr[key] || 'Unknown';
       acc[val] = (acc[val] || 0) + 1;
       return acc;
     }, {});
-  };
 
   const count = (conditionFn) => filtered.filter(conditionFn).length;
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">IDSR Report (Malawi)</h2>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">IDSR Report (Malawi)</h2>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-4">
+      {/* Filters & Export */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
         <div>
           <label className="block font-medium mb-1">Start Date</label>
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border p-2 rounded" />
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
+          />
         </div>
         <div>
           <label className="block font-medium mb-1">End Date</label>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border p-2 rounded" />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
+          />
         </div>
-        <div className="flex items-end">
-          <button onClick={exportToPDF} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <div>
+          <button
+            onClick={exportToPDF}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
             Export to PDF
           </button>
         </div>
       </div>
 
-      <div ref={reportRef} className="bg-white p-6 rounded shadow-md text-sm">
-        <p><strong>Reporting Period:</strong> {startDate} to {endDate}</p>
+      {/* Report Content */}
+      <div ref={reportRef} className="bg-white p-6 rounded-2xl shadow-md space-y-6 text-sm">
+        <p><strong>Reporting Period:</strong> {startDate || 'N/A'} to {endDate || 'N/A'}</p>
         <p><strong>Total Cases Reported:</strong> {filtered.length}</p>
 
-        <h3 className="text-lg mt-4 font-semibold">1. Summary by Disease</h3>
-        <table className="w-full border my-2 text-left">
-          <thead><tr><th className="border p-1">Disease</th><th className="border p-1">Cases</th></tr></thead>
-          <tbody>
-            {Object.entries(groupBy('disease')).map(([disease, count]) => (
-              <tr key={disease}><td className="border p-1">{disease}</td><td className="border p-1">{count}</td></tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Section Tables */}
+        {[
+          { title: '1. Summary by Disease', key: 'disease' },
+          { title: '2. Cases by District', key: 'district' },
+          { title: '3. Sex Distribution', key: 'sex' },
+          { title: '4. Vaccination Status', key: 'vaccination_status' },
+          { title: '6. Outcome Distribution', key: 'outcome' },
+        ].map(({ title, key }) => (
+          <div key={key}>
+            <h3 className="text-lg font-semibold mb-2">{title}</h3>
+            <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border px-3 py-1 text-gray-600">Category</th>
+                  <th className="border px-3 py-1 text-gray-600">Cases</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(groupBy(key)).map(([k, v]) => (
+                  <tr key={k} className="hover:bg-gray-50 transition">
+                    <td className="border px-3 py-1">{k}</td>
+                    <td className="border px-3 py-1">{v}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
 
-        <h3 className="text-lg mt-4 font-semibold">2. Cases by District</h3>
-        <table className="w-full border my-2 text-left">
-          <thead><tr><th className="border p-1">District</th><th className="border p-1">Cases</th></tr></thead>
-          <tbody>
-            {Object.entries(groupBy('district')).map(([d, count]) => (
-              <tr key={d}><td className="border p-1">{d}</td><td className="border p-1">{count}</td></tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Lab Testing */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2">5. Lab Testing</h3>
+          <ul className="list-disc pl-6 space-y-1">
+            <li>Specimens Collected: {count((c) => c.specimen_collected === 'Yes')}</li>
+            <li>Lab Results - Positive: {count((c) => c.lab_result?.toLowerCase() === 'positive')}</li>
+            <li>Lab Results - Negative: {count((c) => c.lab_result?.toLowerCase() === 'negative')}</li>
+          </ul>
+        </div>
 
-        <h3 className="text-lg mt-4 font-semibold">3. Sex Distribution</h3>
-        <table className="w-full border my-2 text-left">
-          <thead><tr><th className="border p-1">Sex</th><th className="border p-1">Cases</th></tr></thead>
-          <tbody>
-            {Object.entries(groupBy('sex')).map(([s, count]) => (
-              <tr key={s}><td className="border p-1">{s}</td><td className="border p-1">{count}</td></tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Age Group Distribution */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2">7. Age Group Distribution</h3>
+          <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-3 py-1 text-gray-600">Age Group</th>
+                <th className="border px-3 py-1 text-gray-600">Cases</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { label: '0-4 years', fn: (age) => age < 5 },
+                { label: '5-14 years', fn: (age) => age >= 5 && age <= 14 },
+                { label: '15-49 years', fn: (age) => age >= 15 && age <= 49 },
+                { label: '50+ years', fn: (age) => age >= 50 },
+              ].map(({ label, fn }) => {
+                const countGroup = filtered.filter(c => fn(parseInt(c.age))).length;
+                return (
+                  <tr key={label} className="hover:bg-gray-50 transition">
+                    <td className="border px-3 py-1">{label}</td>
+                    <td className="border px-3 py-1">{countGroup}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
-        <h3 className="text-lg mt-4 font-semibold">4. Vaccination Status</h3>
-        <table className="w-full border my-2 text-left">
-          <thead><tr><th className="border p-1">Status</th><th className="border p-1">Cases</th></tr></thead>
-          <tbody>
-            {Object.entries(groupBy('vaccination_status')).map(([s, count]) => (
-              <tr key={s}><td className="border p-1">{s}</td><td className="border p-1">{count}</td></tr>
-            ))}
-          </tbody>   
-        </table>
+        {/* Specimen Overview */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2">8. Specimen Testing Overview</h3>
+          <ul className="list-disc pl-6 space-y-1">
+            <li>Specimens Sent to Lab: {count(c => c.specimen_sent_to_lab === 'Yes')}</li>
+            <li>Pending Lab Results: {count(c => c.lab_result?.toLowerCase() === 'pending')}</li>
+          </ul>
+        </div>
 
-        <h3 className="text-lg mt-4 font-semibold">5. Lab Testing</h3>
-        <ul className="list-disc pl-6">
-          <li>Specimens Collected: {count((c) => c.specimen_collected === 'Yes')}</li>
-          <li>Lab Results - Positive: {count((c) => c.lab_result?.toLowerCase() === 'positive')}</li>
-          <li>Lab Results - Negative: {count((c) => c.lab_result?.toLowerCase() === 'negative')}</li>
-        </ul>
-
-        <h3 className="text-lg mt-4 font-semibold">6. Outcome Distribution</h3>
-        <table className="w-full border my-2 text-left">
-          <thead><tr><th className="border p-1">Outcome</th><th className="border p-1">Cases</th></tr></thead>
-          <tbody>
-            {Object.entries(groupBy('outcome')).map(([o, count]) => (
-              <tr key={o}><td className="border p-1">{o}</td><td className="border p-1">{count}</td></tr>
-            ))}
-          </tbody>
-        </table>
-  
-        <h3 className="text-lg mt-4 font-semibold">7. Age Group Distribution</h3>
-        <table className="w-full border my-2 text-left">
-          <thead><tr><th className="border p-1">Age Group</th><th className="border p-1">Cases</th></tr></thead>
-          <tbody>
-            {[
-              { label: '0-4 years', fn: (age) => age < 5 },
-              { label: '5-14 years', fn: (age) => age >= 5 && age <= 14 },
-              { label: '15-49 years', fn: (age) => age >= 15 && age <= 49 },
-              { label: '50+ years', fn: (age) => age >= 50 }
-            ].map(({ label, fn }) => {
-              const countGroup = filtered.filter(c => fn(parseInt(c.age))).length;
-              return <tr key={label}><td className="border p-1">{label}</td><td className="border p-1">{countGroup}</td></tr>;
-            })}
-          </tbody>
-        </table>
-
-        <h3 className="text-lg mt-4 font-semibold">8. Specimen Testing Overview</h3>
-        <ul className="list-disc pl-6">
-          <li>Specimens Sent to Lab: {count(c => c.specimen_sent_to_lab === 'Yes')}</li>
-          <li>Pending Lab Results: {count(c => c.lab_result?.toLowerCase() === 'pending')}</li>
-        </ul>
-
-        <h3 className="text-lg mt-4 font-semibold">9. Top 5 Districts by Case Burden</h3>
-        <table className="w-full border my-2 text-left">
-          <thead><tr><th className="border p-1">District</th><th className="border p-1">Cases</th></tr></thead>
-          <tbody>
-            {Object.entries(groupBy('district'))
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 5)
-              .map(([district, count]) => (
-                <tr key={district}><td className="border p-1">{district}</td><td className="border p-1">{count}</td></tr>
-              ))}
-          </tbody>
-        </table>
-
+        {/* Top 5 Districts */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2">9. Top 5 Districts by Case Burden</h3>
+          <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-3 py-1 text-gray-600">District</th>
+                <th className="border px-3 py-1 text-gray-600">Cases</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(groupBy('district'))
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([district, c]) => (
+                  <tr key={district} className="hover:bg-gray-50 transition">
+                    <td className="border px-3 py-1">{district}</td>
+                    <td className="border px-3 py-1">{c}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
 
       </div>
     </div>

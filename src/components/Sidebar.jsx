@@ -3,47 +3,49 @@ import { NavLink } from 'react-router-dom';
 import {
   HomeIcon,
   MapIcon,
-  ClipboardDocumentIcon,   
-  TableCellsIcon,   
+  ClipboardDocumentIcon,
+  TableCellsIcon,
   DocumentChartBarIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 
 const navItems = [
-  { path: '/', label: 'Dashboard'},
+  { path: '/', label: 'Dashboard' },
   { path: '/map', label: 'Map'},
   { path: '/form', label: 'Report Case'},
-  { path: '/table', label: 'Cases List'},   
-  { path: '/report', label: 'Report'}
-];    
+  { path: '/table', label: 'Cases List'},
+  { path: '/report', label: 'Report'},
+];
 
 const Sidebar = () => (
-  <div className="w-64 h-screen bg-white shadow-md px-6 py-4">
-    <div className="flex items-center space-x-2 mb-6">
-      <ChartBarIcon className="w-6 h-6 text-[#003366]" />
-      <h1 className="text-xl font-bold text-[#003366]">IDSR</h1>
+  <div className="w-64 h-screen bg-white shadow-lg px-6 py-6 flex flex-col">
+    {/* Logo */}
+    <div className="flex items-center mb-8">
+      <ChartBarIcon className="w-6 h-6 text-[#003366] mr-2" />
+      <h1 className="text-2xl font-bold text-[#003366]">IDSR</h1>
     </div>
 
-    <hr className="mb-6 border-t border-gray-300" />
+    <hr className="mb-6 border-gray-300" />
 
-    <nav className="flex flex-col gap-14" aria-label="Main navigation">
-      {navItems.map(({ path, label, icon }) => (  
+    {/* Navigation */}
+    <nav className="flex flex-col gap-16" aria-label="Main navigation">
+      {navItems.map(({ path, label, icon }) => (
         <NavLink
           key={path}
           to={path}
           className={({ isActive }) =>
-            `flex items-center text-[#003366] hover:text-[#001f4d] transition-colors ${
-              isActive ? 'font-semibold text-[#001f4d]' : ''
+            `flex items-center px-3 py-2 rounded-lg text-[#003366] hover:bg-[#e6f0ff] hover:text-[#001f4d] transition-colors ${
+              isActive ? 'bg-[#cce0ff] font-semibold text-[#001f4d]' : ''
             }`
           }
           aria-current={({ isActive }) => (isActive ? 'page' : undefined)}
         >
           {icon}
-          {label}
+          <span>{label}</span>
         </NavLink>
       ))}
     </nav>
   </div>
 );
-   
+
 export default Sidebar;

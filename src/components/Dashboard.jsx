@@ -40,10 +40,13 @@ const Dashboard = () => {
     return acc;
   }, {});
 
-  const chartData = Object.entries(groupedByDate).map(([date, count]) => ({ date, count }));
+  const chartData = Object.entries(groupedByDate)
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const groupedByDistrict = filteredCases.reduce((acc, c) => {
-    acc[c.district] = (acc[c.district] || 0) + 1;
+    const key = c.district || "Unknown";
+    acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
 
@@ -53,38 +56,51 @@ const Dashboard = () => {
   }));
 
   return (
-    <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-100 p-4 rounded shadow text-center">
-          <h3 className="text-lg font-semibold">Total Cases</h3>
-          <p className="text-2xl">{totalCases}</p>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition text-center">
+          <h3 className="text-sm font-medium text-gray-500">Total Cases</h3>
+          <p className="text-3xl font-bold text-blue-600">{totalCases}</p>
         </div>
-        <div className="bg-green-100 p-4 rounded shadow text-center">
-          <h3 className="text-lg font-semibold">Districts</h3>
-          <p className="text-2xl">{totalDistricts}</p>
+        <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition text-center">
+          <h3 className="text-sm font-medium text-gray-500">Districts</h3>
+          <p className="text-3xl font-bold text-green-600">{totalDistricts}</p>
         </div>
-        <div className="bg-yellow-100 p-4 rounded shadow text-center">
-          <h3 className="text-lg font-semibold">Facilities</h3>
-          <p className="text-2xl">{totalFacilities}</p>
+        <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition text-center">
+          <h3 className="text-sm font-medium text-gray-500">Facilities</h3>
+          <p className="text-3xl font-bold text-yellow-600">{totalFacilities}</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <select className="p-2 border rounded" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
+      <div className="bg-white p-4 rounded-xl shadow mb-6 flex flex-wrap gap-4">
+        <select
+          className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          value={yearFilter}
+          onChange={e => setYearFilter(e.target.value)}
+        >
           <option value="">All Years</option>
           {[...new Set(cases.map(c => c.reporting_year))].map(y => (
             <option key={y} value={y}>{y}</option>
           ))}
         </select>
 
-        <select className="p-2 border rounded" value={sexFilter} onChange={e => setSexFilter(e.target.value)}>
+        <select
+          className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          value={sexFilter}
+          onChange={e => setSexFilter(e.target.value)}
+        >
           <option value="">All Sex</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
         </select>
 
-        <select className="p-2 border rounded" value={regionFilter} onChange={e => setRegionFilter(e.target.value)}>
+        <select
+          className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          value={regionFilter}
+          onChange={e => setRegionFilter(e.target.value)}
+        >
           <option value="">All Regions</option>
           {[...new Set(cases.map(c => c.region))].map(r => (
             <option key={r} value={r}>{r}</option>
@@ -92,10 +108,10 @@ const Dashboard = () => {
         </select>
       </div>
 
-      {/* Charts Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Cases Over Time</h3>
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Cases Over Time</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
               <XAxis dataKey="date" />
@@ -106,8 +122,8 @@ const Dashboard = () => {
           </ResponsiveContainer>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Cases by District</h3>
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Cases by District</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={districtData}>
               <XAxis dataKey="district" />
