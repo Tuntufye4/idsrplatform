@@ -50,7 +50,7 @@ const Report = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">IDSR Report (Malawi)</h2>
+      
 
       {/* Filters & Export */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
@@ -84,6 +84,7 @@ const Report = () => {
 
       {/* Report Content */}
       <div ref={reportRef} className="bg-white p-6 rounded-2xl shadow-md space-y-6 text-sm">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">IDSR Malawi</h2>
         <p><strong>Reporting Period:</strong> {startDate || 'N/A'} to {endDate || 'N/A'}</p>
         <p><strong>Total Cases Reported:</strong> {filtered.length}</p>
 
