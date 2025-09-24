@@ -1,6 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
+  HomeIcon,
+  MapIcon,
+  ClipboardDocumentIcon,
+  TableCellsIcon,
+  DocumentChartBarIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 
@@ -24,17 +29,18 @@ const Sidebar = () => (
 
     {/* Navigation */}
     <nav className="flex flex-col gap-16" aria-label="Main navigation">
-      {navItems.map(({ path, label }) => (
+      {navItems.map(({ path, label, icon }) => (
         <NavLink
           key={path}
           to={path}
           className={({ isActive }) =>
-            `flex items-center px-3 py-2 rounded-lg text-[#003366] transition-colors ${
-              isActive ? 'bg-[#cce0ff] font-semibold text-[#001f4d]' : ''
+            `flex items-center px-3 py-2 rounded-lg text-[#003366] hover:text-[#001f4d] transition-colors ${
+              isActive ? 'font-semibold text-[#001f4d]' : ''
             }`
           }
           aria-current={({ isActive }) => (isActive ? 'page' : undefined)}
         >
+          {icon}
           <span>{label}</span>
         </NavLink>
       ))}
@@ -43,4 +49,3 @@ const Sidebar = () => (
 );
 
 export default Sidebar;
-         
