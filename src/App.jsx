@@ -1,16 +1,16 @@
 import React from 'react';        
 import { Routes, Route } from 'react-router-dom';   
-import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import MapView from './components/Map';
-import FormPage from './components/Form';
-import TablePage from './components/Table';
-import ReportPage from './components/Report';
+import Sidebar from './pages/Sidebar';
+import Dashboard from './pages/Dashboard';
+import MapView from './pages/Map';
+import FormPage from './pages/Form';
+import TablePage from './pages/Table';
+import ReportPage from './pages/Report';
   
-const App = () => (
+const App = () => (   
   
     <div className="flex">
-      <Sidebar />
+      <Sidebar />  
       <div className="flex-1 p-6">
         <Routes>
           <Route path="/" element={<Dashboard />} />

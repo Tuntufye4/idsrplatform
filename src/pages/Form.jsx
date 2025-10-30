@@ -4,6 +4,7 @@ import yaml from 'js-yaml';
 import rawFormOptions from '../data/form_options.yml?raw';
 import rawHealthStructure from '../data/malawi_health_structure.yml?raw';
 
+
 const initialState = {
   patient_id: '', full_name: '', age: '', sex: '', date_of_birth: '', national_id: '',
   village: '', traditional_authority: '', health_facility: '', district: '', region: '',
@@ -142,7 +143,7 @@ const Form = () => {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-6xl mx-auto p-6 bg-white rounded shadow space-y-6">
-      <h2 className="text-2xl font-bold mb-4">IDSR Case Form</h2>
+      <h2 className="text-2xl font-bold mb-4">IDSR </h2>
 
       <Section title="Patient Info" sectionKey="patientInfo">
         {renderInput('patient_id', 'Patient ID')}
@@ -166,8 +167,10 @@ const Form = () => {
         {renderInput('date_first_seen', 'Date First Seen', 'date')}
         {renderSelect('disease', 'Disease', formOptions.disease)}
         {renderSelect('case_classification', 'Case Classification', formOptions.case_classification)}
+        {renderSelect('triage_level', 'Triage level', formOptions.triage_level)}
+        {renderSelect('admission_status', 'Admission status', formOptions.admission_status)}
         {renderSelect('outcome', 'Outcome', formOptions.outcome)}
-        {renderInput('date_of_death', 'Date of Death', 'date')}
+        {renderInput('date_of_death', 'Date of Death', 'date')}    
       </Section>
 
       <Section title="Lab Information" sectionKey="lab">
@@ -178,6 +181,7 @@ const Form = () => {
         {renderSelect('lab_name', 'Lab Name', formOptions.lab_name)}
         {renderSelect('specimen_sent_to_lab', 'Specimen Sent to Lab', formOptions.specimen_sent_to_lab)}
         {renderSelect('lab_result', 'Lab Result', formOptions.lab_result)}
+        {renderSelect('lab_tests_ordered', 'Lab Tests Ordered', formOptions.lab_tests_ordered)}  
         {renderInput('date_result_received', 'Date Result Received', 'date')}
         {renderSelect('final_case_classification', 'Final Case Classification', formOptions.final_case_classification)}
       </Section>
@@ -192,20 +196,23 @@ const Form = () => {
 
       <Section title="Reporter Info" sectionKey="reporter">
         {renderInput('reporter_name', 'Reporter Name')}
-        {renderSelect('designation', 'Designation', formOptions.designation)}
-        {renderInput('contact_number', 'Contact Number')}
+        {renderInput('reporting_method','Reporting Method', formOptions.reporting_method)}
+        {renderSelect('designation', 'Designation', formOptions.designation)}  
+        {renderSelect('case_source', 'Case Source', formOptions.case_source)}
+        {renderSelect('health_facility_code', 'Health Facility Code', formOptions.health_facility_code)}
+        {renderInput('contact_number', 'Contact Number')}   
         {renderInput('date_reported', 'Date Reported', 'date')}
         {renderInput('form_completed_by', 'Form Completed By', 'text', true)}
+        {renderInput('supervisor_comments', 'Supervisor Comments', 'text', true)}
         {renderInput('date_form_completed', 'Form Completed Date', 'date')}
       </Section>
-
+  
       <Section title="Metadata" sectionKey="metadata">
         {renderSelect('reporting_week_number', 'Reporting Week Number', formOptions.reporting_week_number)}
         {renderSelect('year', 'Reporting Year', formOptions.year)}
-        {renderSelect('health_facility_code', 'Health Facility Code', formOptions.health_facility_code)}
         {renderSelect('district_code', 'District Code', formOptions.district_code)}
         {renderInput('form_version', 'Form Version')}
-        <div>
+        <div>   
           <label className="block font-medium mb-1">Observations</label>
           <textarea
             name="observations"
