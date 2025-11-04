@@ -9,7 +9,16 @@ import {
 const navItems = [
   { path: '/', label: 'Dashboard' },
   { path: '/map', label: 'Map' },
-  { path: '/form', label: 'Report Case'},
+  {
+    label: 'Report Case',
+    subItems: [   
+      { path: '/form/lab', label: 'Lab' },
+      { path: '/form/facility', label: 'Facility' },
+      { path: '/form/clinical_details', label: 'Clinical Details' },
+      { path: '/form/treatment', label: 'Treatment' },
+      { path: '/form/surveillance_info', label: 'Surveillance Info' },  
+    ],
+  },
   {
     label: 'Cases List',
     subItems: [   
