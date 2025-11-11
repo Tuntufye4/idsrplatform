@@ -140,3 +140,15 @@ form_completed_by:
   - hello
   - cccc
   - Pppppp
+
+district:
+  - Chitipa
+  - Karonga
+  - Lilongwe
+  - Blantyre
+  - Mangochi 
+
+region:
+  - North
+  - Central
+  - South

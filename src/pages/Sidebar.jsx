@@ -15,6 +15,7 @@ const navItems = [
       { path: '/form/lab', label: 'Lab' },
       { path: '/form/facility', label: 'Facility' },
       { path: '/form/clinical_details', label: 'Clinical Details' },
+      { path: '/form/demographics', label: 'Demographics' },
       { path: '/form/treatment', label: 'Treatment' },
       { path: '/form/surveillance_info', label: 'Surveillance Info' }, 
       { path: '/form/epidemiological', label: 'Epidemics Details' }, 

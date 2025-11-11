@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import api from "../../api/api";
-
+    
 const DemographicsTablePage = () => {    
   const [demographics, setDemographics] = useState([]);
   const [search, setSearch] = useState("");  
    
   useEffect(() => {   
-    api.get('cases/').then(res => setDemographics(res.data));
+    api.get('demographics/').then(res => setDemographics(res.data));
   }, []);
      
   // Filter cases by search query
@@ -14,8 +14,7 @@ const DemographicsTablePage = () => {
     const query = search.toLowerCase();   
     return (
       c.full_name?.toLowerCase().includes(query) ||
-      c.village?.toLowerCase().includes(query) ||
-      c.region?.toLowerCase().includes(query)
+      c.village?.toLowerCase().includes(query)    
     );
   });
 
@@ -72,7 +71,7 @@ const DemographicsTablePage = () => {
         </table>    
       </div>
     </div>
-  );
+  );   
 };
 
 export default DemographicsTablePage;

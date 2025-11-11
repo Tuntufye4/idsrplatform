@@ -9,6 +9,7 @@ import LabForm from './pages/form/lab';
 import SurveillanceForm from './pages/form/surveillance_info';
 import TreatmentForm from './pages/form/treatment';       
 import EpidemicsForm from './pages/form/epidemiological';  
+import DemographicsForm from './pages/form/demographics';  
 import ClinicalTablePage from './pages/table/clinical_details';
 import FacilityTablePage from './pages/table/facility';  
 import DemographicsTablePage from './pages/table/demographics';
@@ -34,8 +35,9 @@ const App = () => (
           <Route path="/form/surveillance_info" element={<SurveillanceForm />} />
           <Route path="/form/treatment" element={<TreatmentForm />} />  
           <Route path="/form/epidemiological" element={<EpidemicsForm/>} />
+          <Route path="/form/demographics" element={<DemographicsForm/>} />
           <Route path="/table/clinical_details" element={<ClinicalTablePage />} />
-          <Route path="/table/facility" element={<FacilityTablePage />} />
+          <Route path="/table/facility" element={<FacilityTablePage />} />  
           <Route path="/table/lab" element={<LabTablePage />} />   
           <Route path="/table/surveillance_info" element={<Surveillance_infoTablePage />} />
           <Route path="/table/treatment" element={<TreatmentTablePage />} />
