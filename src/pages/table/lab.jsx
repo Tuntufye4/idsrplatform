@@ -57,7 +57,7 @@ const LabTablePage = () => {
                 <td className="px-4 py-2">{c.lab_name}</td>
                 <td className="px-4 py-2">{c.specimen_sent_to_lab}</td>
                 <td className="px-4 py-2">{c.lab_result}</td>
-                <td className="px-4 py-2">{c.lab_tests_ordered}</td>
+                <td className="px-4 py-2">{c.lab_tests_ordered}</td>   
               </tr>
             ))}
             {filteredLab.length === 0 && (

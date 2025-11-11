@@ -16,17 +16,20 @@ const navItems = [
       { path: '/form/facility', label: 'Facility' },
       { path: '/form/clinical_details', label: 'Clinical Details' },
       { path: '/form/treatment', label: 'Treatment' },
-      { path: '/form/surveillance_info', label: 'Surveillance Info' },  
+      { path: '/form/surveillance_info', label: 'Surveillance Info' }, 
+      { path: '/form/epidemiological', label: 'Epidemics Details' }, 
     ],
   },
-  {
+  {   
     label: 'Cases List',
-    subItems: [   
-      { path: '/table/lab', label: 'Lab' },
+    subItems: [ 
+      { path: '/table/demographics', label: 'Demographics'},  
+      { path: '/table/lab', label: 'Lab' },   
       { path: '/table/facility', label: 'Facility' },
       { path: '/table/clinical_details', label: 'Clinical Details' },
       { path: '/table/treatment', label: 'Treatment' },
       { path: '/table/surveillance_info', label: 'Surveillance Info' },
+      { path: '/table/epidemiological', label: 'Epidemics Details'}
     ],
   },
   { path: '/report', label: 'Report' },
