@@ -42,7 +42,7 @@ const EpidemicsForm = () => {
       .forEach(f => { if (payload[f] === '') payload[f] = null; });
 
     try {
-      await axios.post('http://127.0.0.1:8000/api/epidemiological/', payload);
+      await axios.post('http://idsr-backend.onrender.com/api/epidemiological/', payload);
       alert('Form submitted successfully!');
       setFormData(initialState);
     } catch (err) {
