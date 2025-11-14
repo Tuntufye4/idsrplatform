@@ -136,7 +136,7 @@ const SurveillanceForm = () => {
         {renderSelect('reporting_week_number', 'Reporting Week Number', formOptions.reporting_week_number)}
         {renderSelect('notifier_signature', 'Notifier Signature', formOptions.notifier_signature)}
         {renderInput('year', 'Year', 'date')}
-        {renderInput('reviewed_by', 'Reviewed By')}
+        {renderInput('reviewed_by', 'Reviewed By')}    
         <div>   
           <label className="block font-medium mb-1">Supervisor Comments</label>
           <textarea

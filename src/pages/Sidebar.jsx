@@ -33,8 +33,14 @@ const navItems = [
       { path: '/table/epidemiological', label: 'Epidemics Details'}
     ],
   },
-  { path: '/report', label: 'Report' },
-];
+  {      
+    label: 'Reports',
+    subItems: [ 
+      { path: '/report/clinical', label: 'Clinical'},
+      { path: '/report/demographics', label: 'Demographics'}   
+    ],
+  }
+];   
 
 const Sidebar = () => {
   const [openMenu, setOpenMenu] = useState(null);

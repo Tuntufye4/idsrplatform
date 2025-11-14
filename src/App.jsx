@@ -15,8 +15,9 @@ import FacilityTablePage from './pages/table/facility';
 import DemographicsTablePage from './pages/table/demographics';
 import LabTablePage from './pages/table/lab';
 import Surveillance_infoTablePage from './pages/table/surveillance_info';
-import TreatmentTablePage from './pages/table/treatment';     
-import ReportPage from './pages/Report';
+import TreatmentTablePage from './pages/table/treatment';           
+import DemographicsReportPage from './pages/report/demographics';
+import ClinicalReportPage from './pages/report/clinical';
 import EpidemicsTablePage from './pages/table/epidemiological';
 
 
@@ -42,11 +43,12 @@ const App = () => (
           <Route path="/table/surveillance_info" element={<Surveillance_infoTablePage />} />
           <Route path="/table/treatment" element={<TreatmentTablePage />} />
           <Route path="/table/demographics" element={<DemographicsTablePage />}  />
-          <Route path="/table/epidemiological" element={<EpidemicsTablePage/>} />
-          <Route path="/report" element={<ReportPage />} />
+          <Route path="/table/epidemiological" element={<EpidemicsTablePage/>} />  
+          <Route path="/report/demographics" element={<DemographicsReportPage />} />
+          <Route path="/report/clinical" element={<ClinicalReportPage />} />
         </Routes>
       </div>
-    </div>
+    </div>     
      
 );
 

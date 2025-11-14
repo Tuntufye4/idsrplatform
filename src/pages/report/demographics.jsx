@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import dayjs from 'dayjs';
-import api from '../api/api';
+import api from '../../api/api';    
 import html2pdf from 'html2pdf.js';
+      
 
-const Report = () => {
+const DemographicsReportPage = () => {
   const [cases, setCases] = useState([]);
   const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [filtered, setFiltered] = useState([]);
+  const [endDate, setEndDate] = useState('');    
+  const [filtered, setFiltered] = useState([]);   
   const reportRef = useRef();
 
   useEffect(() => {
@@ -31,7 +32,7 @@ const Report = () => {
     const element = reportRef.current;
     const opt = {
       margin: 0.5,
-      filename: 'idsr_report.pdf',
+      filename: 'idsr_demographics_report.pdf',
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -55,7 +56,7 @@ const Report = () => {
       {/* Filters & Export */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
         <div>
-          <label className="block font-medium mb-1">Start Date</label>
+          <label className="block font-medium mb-1">Start Date</label>   
           <input
             type="date"
             value={startDate}
@@ -84,17 +85,16 @@ const Report = () => {
 
       {/* Report Content */}
       <div ref={reportRef} className="bg-white p-6 rounded-2xl shadow-md space-y-6 text-sm">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">IDSR Malawi</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">IDSR Demographics Report</h2>
         <p><strong>Reporting Period:</strong> {startDate || 'N/A'} to {endDate || 'N/A'}</p>
         <p><strong>Total Cases Reported:</strong> {filtered.length}</p>
 
         {/* Section Tables */}
         {[
-          { title: '1. Summary by Disease', key: 'disease' },
-          { title: '2. Cases by District', key: 'district' },
+          { title: '1. Cases by District', key: 'district' },  
+          { title: '2. Cases by Region', key: 'region' },
+          { title: '2. Cases by Village', key: 'village' },
           { title: '3. Sex Distribution', key: 'sex' },
-          { title: '4. Vaccination Status', key: 'vaccination_status' },
-          { title: '6. Outcome Distribution', key: 'outcome' },
         ].map(({ title, key }) => (
           <div key={key}>
             <h3 className="text-lg font-semibold mb-2">{title}</h3>
@@ -117,19 +117,9 @@ const Report = () => {
           </div>
         ))}
 
-        {/* Lab Testing */}
-        <div>
-          <h3 className="text-lg font-semibold mb-2">5. Lab Testing</h3>
-          <ul className="list-disc pl-6 space-y-1">
-            <li>Specimens Collected: {count((c) => c.specimen_collected === 'Yes')}</li>
-            <li>Lab Results - Positive: {count((c) => c.lab_result?.toLowerCase() === 'positive')}</li>
-            <li>Lab Results - Negative: {count((c) => c.lab_result?.toLowerCase() === 'negative')}</li>
-          </ul>
-        </div>
-
         {/* Age Group Distribution */}
         <div>
-          <h3 className="text-lg font-semibold mb-2">7. Age Group Distribution</h3>
+          <h3 className="text-lg font-semibold mb-2">4. Age Group Distribution</h3>
           <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
             <thead className="bg-gray-100">
               <tr>
@@ -156,18 +146,9 @@ const Report = () => {
           </table>
         </div>
 
-        {/* Specimen Overview */}
+        {/* Top 5 Districts */}   
         <div>
-          <h3 className="text-lg font-semibold mb-2">8. Specimen Testing Overview</h3>
-          <ul className="list-disc pl-6 space-y-1">
-            <li>Specimens Sent to Lab: {count(c => c.specimen_sent_to_lab === 'Yes')}</li>
-            <li>Pending Lab Results: {count(c => c.lab_result?.toLowerCase() === 'pending')}</li>
-          </ul>
-        </div>
-
-        {/* Top 5 Districts */}
-        <div>
-          <h3 className="text-lg font-semibold mb-2">9. Top 5 Districts by Case Burden</h3>
+          <h3 className="text-lg font-semibold mb-2">5. Top 5 Districts by Case Burden</h3>
           <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
             <thead className="bg-gray-100">
               <tr>
@@ -193,5 +174,6 @@ const Report = () => {
     </div>
   );
 };
-
-export default Report;  
+    
+export default DemographicsReportPage;     
+  

@@ -4,7 +4,7 @@ import yaml from 'js-yaml';
 import rawFormOptions from '../../data/form_options.yml?raw';
 import rawHealthStructure from '../../data/malawi_health_structure.yml?raw';   
 
-
+  
 const initialState = {
   patient_id: '', designation: '', date_reported: '',
   form_completed_by: '',  health_facility_code: '', case_source: '',  reporting_method: ''
