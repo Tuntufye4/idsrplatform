@@ -36,9 +36,10 @@ const navItems = [
   {      
     label: 'Reports',
     subItems: [ 
-      { path: '/report/clinical', label: 'Clinical'},
-      { path: '/report/demographics', label: 'Demographics'}   
-    ],
+      { path: '/report/clinical', label: 'Clinical'},   
+      { path: '/report/demographics', label: 'Demographics'},
+      { path: '/report/lab', label: 'Lab'}      
+    ],           
   }
 ];   
 

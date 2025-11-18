@@ -1,4 +1,4 @@
-// src/components/BaseReport.jsx
+// src/components/BaseReport.jsx   
 import React, { useEffect, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import html2pdf from 'html2pdf.js';
@@ -19,7 +19,7 @@ const BaseReport = ({ title, endpoint, sections }) => {
     });
   }, [endpoint]);
 
-  // Filter data by date range
+  // Filter data by date range   
   useEffect(() => {
     if (startDate && endDate) {
       const filteredData = records.filter((r) => {

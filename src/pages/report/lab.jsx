@@ -2,17 +2,17 @@ import React, { useEffect, useState, useRef } from 'react';
 import dayjs from 'dayjs';
 import api from '../../api/api';    
 import html2pdf from 'html2pdf.js';
-      
 
-const DemographicsReportPage = () => {
-  const [cases, setCases] = useState([]);
+
+const LabReportPage = () => {
+  const [cases, setCases] = useState([]);    
   const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');    
+  const [endDate, setEndDate] = useState('');
   const [filtered, setFiltered] = useState([]);   
   const reportRef = useRef();
 
   useEffect(() => {
-    api.get('/cases/').then((res) => {
+    api.get('/lab/').then((res) => {
       setCases(res.data);
       setFiltered(res.data);
     });
@@ -32,7 +32,7 @@ const DemographicsReportPage = () => {
     const element = reportRef.current;
     const opt = {
       margin: 0.5,
-      filename: 'idsr_demographics_report.pdf',
+      filename: 'idsr_lab_report.pdf',
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -54,7 +54,7 @@ const DemographicsReportPage = () => {
       
 
       {/* Filters & Export */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">   
+      <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
         <div>
           <label className="block font-medium mb-1">Start Date</label>   
           <input
@@ -85,16 +85,16 @@ const DemographicsReportPage = () => {
 
       {/* Report Content */}
       <div ref={reportRef} className="bg-white p-6 rounded-2xl shadow-md space-y-6 text-sm">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">IDSR Demographics Report</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">IDSR Lab Report</h2>
         <p><strong>Reporting Period:</strong> {startDate || 'N/A'} to {endDate || 'N/A'}</p>
         <p><strong>Total Cases Reported:</strong> {filtered.length}</p>
 
         {/* Section Tables */}
         {[
-          { title: '1. Cases by District', key: 'district' },  
-          { title: '2. Cases by Region', key: 'region' },
-          { title: '3. Cases by Village', key: 'village' },
-          { title: '4. Sex Distribution', key: 'sex' },
+          { title: '1. Summary by specimen collected', key: 'specimen_collected' },      
+          { title: '2. Summary by specimen type', key: 'specimen_type' },
+          { title: '3. Summary by specimen sent to lab', key: 'specimen_sent_to_lab' },
+          { title: '4. Summary by lab result', key: 'lab_result' },   
         ].map(({ title, key }) => (
           <div key={key}>
             <h3 className="text-lg font-semibold mb-2">{title}</h3>
@@ -115,65 +115,13 @@ const DemographicsReportPage = () => {
               </tbody>
             </table>
           </div>
-        ))}
+        ))}     
 
-        {/* Age Group Distribution */}
-        <div>
-          <h3 className="text-lg font-semibold mb-2">5. Age Group Distribution</h3>
-          <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-3 py-1 text-gray-600">Age Group</th>
-                <th className="border px-3 py-1 text-gray-600">Cases</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { label: '0-4 years', fn: (age) => age < 5 },
-                { label: '5-14 years', fn: (age) => age >= 5 && age <= 14 },
-                { label: '15-49 years', fn: (age) => age >= 15 && age <= 49 },
-                { label: '50+ years', fn: (age) => age >= 50 },
-              ].map(({ label, fn }) => {
-                const countGroup = filtered.filter(c => fn(parseInt(c.age))).length;
-                return (
-                  <tr key={label} className="hover:bg-gray-50 transition">
-                    <td className="border px-3 py-1">{label}</td>
-                    <td className="border px-3 py-1">{countGroup}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Top 5 Districts */}   
-        <div>
-          <h3 className="text-lg font-semibold mb-2">6. Top 5 Districts by Case Burden</h3>
-          <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-3 py-1 text-gray-600">District</th>
-                <th className="border px-3 py-1 text-gray-600">Cases</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(groupBy('district'))
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5)
-                .map(([district, c]) => (
-                  <tr key={district} className="hover:bg-gray-50 transition">
-                    <td className="border px-3 py-1">{district}</td>
-                    <td className="border px-3 py-1">{c}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
+       
 
       </div>
     </div>
   );
 };
     
-export default DemographicsReportPage;     
-  
+export default LabReportPage;     

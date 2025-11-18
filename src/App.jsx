@@ -10,15 +10,16 @@ import SurveillanceForm from './pages/form/surveillance_info';
 import TreatmentForm from './pages/form/treatment';       
 import EpidemicsForm from './pages/form/epidemiological';  
 import DemographicsForm from './pages/form/demographics';  
-import ClinicalTablePage from './pages/table/clinical_details';
+import ClinicalTablePage from './pages/table/clinical_details';   
 import FacilityTablePage from './pages/table/facility';  
 import DemographicsTablePage from './pages/table/demographics';
-import LabTablePage from './pages/table/lab';
+import LabTablePage from './pages/table/lab';   
 import Surveillance_infoTablePage from './pages/table/surveillance_info';
 import TreatmentTablePage from './pages/table/treatment';           
 import DemographicsReportPage from './pages/report/demographics';
 import ClinicalReportPage from './pages/report/clinical';
 import EpidemicsTablePage from './pages/table/epidemiological';
+import LabReportPage from './pages/report/lab';
 
 
   
@@ -40,12 +41,13 @@ const App = () => (
           <Route path="/table/clinical_details" element={<ClinicalTablePage />} />
           <Route path="/table/facility" element={<FacilityTablePage />} />  
           <Route path="/table/lab" element={<LabTablePage />} />   
-          <Route path="/table/surveillance_info" element={<Surveillance_infoTablePage />} />
+          <Route path="/table/surveillance_info" element={<Surveillance_infoTablePage />} />   
           <Route path="/table/treatment" element={<TreatmentTablePage />} />
           <Route path="/table/demographics" element={<DemographicsTablePage />}  />
           <Route path="/table/epidemiological" element={<EpidemicsTablePage/>} />  
           <Route path="/report/demographics" element={<DemographicsReportPage />} />
-          <Route path="/report/clinical" element={<ClinicalReportPage />} />
+          <Route path="/report/clinical" element={<ClinicalReportPage />} />   
+          <Route path="/report/lab" element={<LabReportPage />} />       
         </Routes>
       </div>
     </div>     
