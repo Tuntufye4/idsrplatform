@@ -37,7 +37,7 @@ const FacilityTablePage = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Designation</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date reported</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Form Completed By</th>
@@ -49,7 +49,7 @@ const FacilityTablePage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredFacility.map((c, i) => (
               <tr key={i} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-2">{c.full_name}</td>
+                <td className="px-4 py-2">{c.patient_id}</td>
                 <td className="px-4 py-2">{c.designation}</td>
                 <td className="px-4 py-2">{c.date_reported}</td>
                 <td className="px-4 py-2">{c.form_completed_by}</td>

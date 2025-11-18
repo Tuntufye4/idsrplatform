@@ -37,7 +37,7 @@ const DemographicsTablePage = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Age</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Sex</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date of birth</th>
@@ -50,7 +50,7 @@ const DemographicsTablePage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredDemographics.map((c, i) => (
               <tr key={i} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-2">{c.full_name}</td>
+                <td className="px-4 py-2">{c.patient_id}</td>
                 <td className="px-4 py-2">{c.age}</td>
                 <td className="px-4 py-2">{c.sex}</td>
                 <td className="px-4 py-2">{c.date_of_birth}</td>

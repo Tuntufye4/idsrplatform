@@ -38,7 +38,7 @@ const ClinicalTablePage = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Disease</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Case Classification</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Symptoms</th>
@@ -51,7 +51,7 @@ const ClinicalTablePage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredClinical.map((c, i) => (
               <tr key={i} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-2">{c.full_name}</td>
+                <td className="px-4 py-2">{c.patient_id}</td>   
                 <td className="px-4 py-2">{c.disease}</td>
                 <td className="px-4 py-2">{c.case_classification}</td>
                 <td className="px-4 py-2">{c.symptoms}</td>

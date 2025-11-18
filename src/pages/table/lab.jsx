@@ -37,7 +37,7 @@ const LabTablePage = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Specimen Collected</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Specimen Collected</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Specimen Type</th>
@@ -50,7 +50,7 @@ const LabTablePage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredLab.map((c, i) => (
               <tr key={i} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-2">{c.full_name}</td>
+                <td className="px-4 py-2">{c.patient_id}</td>
                 <td className="px-4 py-2">{c.specimen_collected}</td>
                 <td className="px-4 py-2">{c.date_specimen_collected}</td>
                 <td className="px-4 py-2">{c.specimen_type}</td>

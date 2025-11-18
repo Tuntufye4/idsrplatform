@@ -33,12 +33,12 @@ const TreatmentTablePage = () => {
         />
       </div>
 
-      {/* Table */}
+      {/* Table */}   
       <div className="overflow-x-auto shadow rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Treatment Given</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Procedures Done</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Follow Up Plan</th>
@@ -47,8 +47,8 @@ const TreatmentTablePage = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredTreatment.map((c, i) => (
-              <tr key={i} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-2">{c.full_name}</td>
+              <tr key={i} className="hover:bg-gray-50 transition">   
+                <td className="px-4 py-2">{c.patient_id}</td>
                 <td className="px-4 py-2">{c.treatment_given}</td>
                 <td className="px-4 py-2">{c.procedures_done}</td>
                 <td className="px-4 py-2">{c.follow_up_plan}</td>
