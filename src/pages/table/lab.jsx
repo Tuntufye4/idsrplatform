@@ -6,7 +6,7 @@ const LabTablePage = () => {
   const [search, setSearch] = useState("");
 
   useEffect(() => {     
-    api.get('lab/').then(res => setLab(res.data));
+    api.get('/lab/').then(res => setLab(res.data));
   }, []);
 
   // Filter cases by search query

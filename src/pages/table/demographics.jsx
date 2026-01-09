@@ -6,7 +6,7 @@ const DemographicsTablePage = () => {
   const [search, setSearch] = useState("");  
    
   useEffect(() => {   
-    api.get('demographics/').then(res => setDemographics(res.data));
+    api.get('/demographics/').then(res => setDemographics(res.data));
   }, []);
      
   // Filter cases by search query

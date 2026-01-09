@@ -6,9 +6,9 @@ const FacilityTablePage = () => {
   const [search, setSearch] = useState("");
 
   useEffect(() => {   
-    api.get('facility/').then(res => setFacility(res.data));
+    api.get('/facility/').then(res => setFacility(res.data));
   }, []);
-
+           
   // Filter cases by search query
   const filteredFacility = facility.filter((c) => {
     const query = search.toLowerCase();
@@ -72,5 +72,5 @@ const FacilityTablePage = () => {
   );
 };
 
-export default FacilityTablePage;
+export default FacilityTablePage;  
   

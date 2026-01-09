@@ -6,7 +6,7 @@ const EpidemicsTablePage = () => {
   const [search, setSearch] = useState("");  
      
   useEffect(() => {   
-    api.get('epidemiological/').then(res => setEpidemics(res.data));
+    api.get('/epidemiological/').then(res => setEpidemics(res.data));
   }, []);
      
   // Filter cases by search query

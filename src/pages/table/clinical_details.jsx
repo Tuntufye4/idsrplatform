@@ -4,9 +4,9 @@ import api from "../../api/api";
 const ClinicalTablePage = () => {
   const [clinical, setClinical] = useState([]);
   const [search, setSearch] = useState("");  
-
+    
   useEffect(() => {   
-    api.get('clinical/').then(res => setClinical(res.data));
+    api.get('/clinical/').then(res => setClinical(res.data));
   }, []);
 
   // Filter cases by search query

@@ -7,7 +7,7 @@ import html2pdf from 'html2pdf.js';
 const LabReportPage = () => {
   const [cases, setCases] = useState([]);    
   const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [endDate, setEndDate] = useState('');    
   const [filtered, setFiltered] = useState([]);   
   const reportRef = useRef();
 

@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';   
+import React, { useEffect, useState } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip,
+  BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip,
   LineChart, Line, ResponsiveContainer
 } from 'recharts';
 import api from "../api/api";
-
+   
 const Dashboard = () => {
   const [cases, setCases] = useState([]);
   const [filteredCases, setFilteredCases] = useState([]);
@@ -43,6 +43,23 @@ const Dashboard = () => {
   const chartData = Object.entries(groupedByDate)
     .map(([date, count]) => ({ date, count }))
     .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const groupedByDisease = filteredCases.reduce((acc, c) => {
+    const key = c.disease || "Unknown";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  const diseaseData = Object.entries(groupedByDisease).map(
+    ([disease, count]) => ({ disease, count })
+  );
+
+  const pieColors = [
+    "#6366f1", "#34d399", "#f59e0b",
+    "#ef4444", "#14b8a6", "#a855f7",
+    "#3b82f6", "#ec4899"
+  ];
+
 
   const groupedByDistrict = filteredCases.reduce((acc, c) => {
     const key = c.district || "Unknown";
@@ -133,6 +150,35 @@ const Dashboard = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
+
+        <div className="bg-white p-6 mt-6 rounded-2xl shadow">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">
+            Disease Distribution
+          </h3>
+
+          <ResponsiveContainer width="100%" height={350}>
+            <PieChart>
+              <Pie
+                data={diseaseData}
+                dataKey="count"
+                nameKey="disease"
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                label
+              >
+                {diseaseData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={pieColors[index % pieColors.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
       </div>
     </div>
   );

@@ -33,8 +33,8 @@ const navItems = [
       { path: '/table/epidemiological', label: 'Epidemics Details'}
     ],
   },
-  {      
-    label: 'Reports',
+  {          
+    label: 'Reports',    
     subItems: [ 
       { path: '/report/clinical', label: 'Clinical'},   
       { path: '/report/demographics', label: 'Demographics'},
@@ -119,3 +119,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+   

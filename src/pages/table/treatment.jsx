@@ -6,7 +6,7 @@ const TreatmentTablePage = () => {
   const [search, setSearch] = useState("");  
 
   useEffect(() => {   
-    api.get('treatment/').then(res => setTreatment(res.data));
+    api.get('/treatment/').then(res => setTreatment(res.data));
   }, []);
 
   // Filter cases by search query

@@ -6,7 +6,7 @@ const Surveillance_infoTablePage = () => {
   const [search, setSearch] = useState("");  
 
   useEffect(() => {   
-    api.get('surveillance_info/').then(res => setSurveillance_info(res.data));
+    api.get('/surveillance_info/').then(res => setSurveillance_info(res.data));
   }, []);
 
   // Filter cases by search query
