@@ -1,247 +1,160 @@
-// src/App.jsx
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import { AuthProvider, useAuth } from "./auth/AuthContext";
-
-// Authentication
+// =====================================================
+// AUTH      
+// =====================================================
 import Login from "./pages/login";
 import Register from "./pages/register";
-
-// Main pages     
-import SelectPage from "./pages/select";
+    
+// =====================================================
+// MAIN
+// =====================================================
+import Select from "./pages/select";
 import Dashboard from "./pages/dashboard";
-import MapView from "./pages/map";       
+import MapView from "./pages/map";             
+                                        
+// =====================================================
+// FORMS
+// =====================================================
 
-// Table pages
-import DemographicsTable from "./pages/tables/demographics";
-import ClinicalTable from "./pages/tables/clinical_details";
-import LabTable from "./pages/tables/lab";
-import FacilityTable from "./pages/tables/facility";
-import TreatmentTable from "./pages/tables/treatment";
-import SurveillanceTable from "./pages/tables/surveillance_info";
-import EpidemiologyTable from "./pages/tables/epidemiological";
 
-// Report pages
-import ClinicalReport from "./pages/reports/clinical";
-import DemographicsReport from "./pages/reports/demographics";
-import LabReport from "./pages/reports/lab";
+// =====================================================
+// TABLES
+// Folder: pages/table/
+// =====================================================
+import TableSidebar from "./pages/table/tablesidebar";
+import DemographicsTable from "./pages/table/demographics";
+import ClinicalTable from "./pages/table/clinical_details";
+import LabTable from "./pages/table/lab";
+import FacilityTable from "./pages/table/facility";
+import TreatmentTable from "./pages/table/treatment";
+import SurveillanceTable from "./pages/table/surveillance_info";
+import EpidemiologicalTable from "./pages/table/epidemiological";
 
-/* =====================================================
-   PROTECTED ROUTE
-===================================================== */
+// =====================================================
+// REPORTS
+// Folder: pages/report/
+// =====================================================
+import ReportSidebar from "./pages/report/reportsidebar";
+import ClinicalReport from "./pages/report/clinical";
+import DemographicsReport from "./pages/report/demographics";
+import LabReport from "./pages/report/lab";
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-teal-50">
-        <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-teal-200 border-t-teal-600" />
-
-          <p className="mt-4 text-sm font-medium text-gray-500">
-            Loading IDSR...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-};
-
-/* =====================================================
-   APP
-===================================================== */
-
-const AppRoutes = () => {
+function App() {
   return (
     <Routes>
-      {/* ================= AUTH ================= */}
+
+      {/* =================================================
+          AUTH
+      ================================================= */}
 
       <Route path="/login" element={<Login />} />
-
       <Route path="/register" element={<Register />} />
 
-      {/* ================= SELECT ================= */}
+
+      {/* =================================================
+          MAIN
+      ================================================= */}
+
+      <Route path="/" element={<Select />} />
+
+      <Route path="/dashboard" element={<Dashboard />} />
+
+      <Route path="/map" element={<MapView />} />
+
+
+      {/* =================================================
+          REPORT CASE
+      ================================================= */}
+
+      
+  
+
+
+      {/* =================================================
+          TABLES
+          Folder: pages/table/
+      ================================================= */}
 
       <Route
-        path="/select"
-        element={
-          <ProtectedRoute>
-            <SelectPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* ================= DASHBOARD ================= */}
-
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Keep "/" pointing to dashboard */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* ================= MAP ================= */}
-
-      <Route
-        path="/map"
-        element={
-          <ProtectedRoute>
-            <MapView />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* ================= TABLES ================= */}
-
-      <Route
-        path="/tables"
-        element={
-          <ProtectedRoute>    
-            <SelectPage />
-          </ProtectedRoute>
-        }
+        path="/table"
+        element={<TableSidebar />}
       />
 
       <Route
         path="/table/demographics"
-        element={
-          <ProtectedRoute>
-            <DemographicsTable />
-          </ProtectedRoute>
-        }
+        element={<DemographicsTable />}
       />
 
       <Route
         path="/table/clinical_details"
-        element={
-          <ProtectedRoute>
-            <ClinicalTable />
-          </ProtectedRoute>
-        }
+        element={<ClinicalTable />}
       />
 
       <Route
         path="/table/lab"
-        element={
-          <ProtectedRoute>
-            <LabTable />
-          </ProtectedRoute>
-        }
+        element={<LabTable />}
       />
 
       <Route
         path="/table/facility"
-        element={
-          <ProtectedRoute>
-            <FacilityTable />
-          </ProtectedRoute>
-        }
+        element={<FacilityTable />}
       />
 
       <Route
         path="/table/treatment"
-        element={
-          <ProtectedRoute>
-            <TreatmentTable />
-          </ProtectedRoute>
-        }
+        element={<TreatmentTable />}
       />
 
       <Route
         path="/table/surveillance_info"
-        element={
-          <ProtectedRoute>
-            <SurveillanceTable />
-          </ProtectedRoute>
-        }
+        element={<SurveillanceTable />}
       />
 
       <Route
         path="/table/epidemiological"
-        element={
-          <ProtectedRoute>
-            <EpidemiologyTable />
-          </ProtectedRoute>
-        }
+        element={<EpidemiologicalTable />}
       />
 
-      {/* ================= REPORTS ================= */}
+
+      {/* =================================================
+          REPORTS
+          Folder: pages/report/
+      ================================================= */}
 
       <Route
-        path="/reports"
-        element={
-          <ProtectedRoute>
-            <ClinicalReport />
-          </ProtectedRoute>
-        }
+        path="/report"
+        element={<ReportSidebar />}
       />
 
       <Route
         path="/report/clinical"
-        element={
-          <ProtectedRoute>
-            <ClinicalReport />
-          </ProtectedRoute>
-        }
+        element={<ClinicalReport />}
       />
 
       <Route
         path="/report/demographics"
-        element={
-          <ProtectedRoute>
-            <DemographicsReport />
-          </ProtectedRoute>
-        }
+        element={<DemographicsReport />}
       />
 
       <Route
         path="/report/lab"
-        element={
-          <ProtectedRoute>
-            <LabReport />
-          </ProtectedRoute>
-        }
+        element={<LabReport />}
       />
 
-      {/* ================= FALLBACK ================= */}
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* =================================================
+          FALLBACK
+      ================================================= */}
+
+      <Route
+        path="*"
+        element={<Navigate to="/" replace />}
+      />
+
     </Routes>
   );
-};
-
-/* =====================================================
-   ROOT APP
-===================================================== */
-
-const App = () => {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
-  );
-};
+}
 
 export default App;
