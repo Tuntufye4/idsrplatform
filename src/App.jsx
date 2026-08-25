@@ -1,18 +1,18 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-// =====================================================
+// =====================================================         
 // AUTH      
 // =====================================================
-import Login from "./auth/login";     
-import Register from "./pages/register";    
+import Login from "./pages/login";     
+import Register from "./pages/register";       
     
 // =====================================================
 // MAIN
 // =====================================================
 import Select from "./pages/select";
 import Dashboard from "./pages/dashboard";    
-import MapView from "./pages/map";                  
+import MapView from "./pages/map";                     
                                         
 // =====================================================
 // FORMS

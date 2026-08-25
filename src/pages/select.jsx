@@ -30,19 +30,19 @@ const SelectPage = () => {
         {
             title: "Tables / Lists",
             description: "Browse, search and review detailed case information.",
-            path: "/tables",
-            icon: TableCellsIcon,
+            path: "/table",
+            icon: TableCellsIcon,      
         },
         {
             title: "Reports",
             description:
                 "Generate clinical, demographic and laboratory reports.",
-            path: "/reports",
+            path: "/report",
             icon: DocumentChartBarIcon,
         },
     ];
 
-    const handleLogout = () => {
+    const handleLogout = () => {   
         logoutUser();
     };
 

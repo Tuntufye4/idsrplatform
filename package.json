@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
+  "scripts": {   
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
@@ -22,7 +22,7 @@
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.7.0",
     "react-tooltip": "^5.29.1",
-    "react-zoom-pan-pinch": "^3.7.0",
+    "react-zoom-pan-pinch": "^3.7.0",   
     "recharts": "^3.4.1"
   },
   "devDependencies": {

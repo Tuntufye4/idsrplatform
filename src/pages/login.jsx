@@ -1,12 +1,12 @@
 // src/pages/login.jsx
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../auth/AuthContext";
 import {
     ShieldCheckIcon,
     UserIcon,        
     LockClosedIcon,     
-    EyeIcon,
+    EyeIcon,         
     EyeSlashIcon,
     ArrowRightIcon,
 } from "@heroicons/react/24/outline";
