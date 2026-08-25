@@ -1,7 +1,7 @@
 // src/pages/login.jsx
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "./AuthContext";
 import {
     ShieldCheckIcon,
     UserIcon,        

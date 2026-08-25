@@ -4,8 +4,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // =====================================================
 // AUTH      
 // =====================================================
-import Login from "./pages/login";
-import Register from "./pages/register";
+import Login from "./auth/login";     
+import Register from "./pages/register";    
     
 // =====================================================
 // MAIN
