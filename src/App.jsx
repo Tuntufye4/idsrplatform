@@ -11,8 +11,8 @@ import Register from "./pages/register";
 // MAIN
 // =====================================================
 import Select from "./pages/select";
-import Dashboard from "./pages/dashboard";
-import MapView from "./pages/map";             
+import Dashboard from "./pages/dashboard";    
+import MapView from "./pages/map";                  
                                         
 // =====================================================
 // FORMS
