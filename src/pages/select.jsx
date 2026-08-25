@@ -31,7 +31,7 @@ const SelectPage = () => {
             title: "Tables / Lists",
             description: "Browse, search and review detailed case information.",
             path: "/table",
-            icon: TableCellsIcon,      
+            icon: TableCellsIcon,         
         },
         {
             title: "Reports",
