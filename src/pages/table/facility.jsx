@@ -1,76 +1,94 @@
-import React, { useEffect, useState } from 'react';
-import api from "../../api/api";
+import React, { useEffect, useMemo, useState } from 'react';
+import { getFacility } from '../../api/api';
 
-const FacilityTablePage = () => {
-  const [facility, setFacility] = useState([]);
-  const [search, setSearch] = useState("");
+const FacilityTable = () => {
+  const [facilities, setFacilities] = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {   
-    api.get('/facility/').then(res => setFacility(res.data));
+  useEffect(() => {
+    getFacility()
+      .then((res) => setFacilities(res.data))
+      .catch((err) => console.error('Error loading facilities:', err))
+      .finally(() => setLoading(false));
   }, []);
-           
-  // Filter cases by search query
-  const filteredFacility = facility.filter((c) => {
-    const query = search.toLowerCase();
-    return (
-      c.full_name?.toLowerCase().includes(query) ||
-      c.case_source?.toLowerCase().includes(query) 
+
+  const filtered = useMemo(() => {
+    const query = search.toLowerCase().trim();
+
+    return facilities.filter((c) =>
+      Object.values(c).some((value) =>
+        String(value ?? '').toLowerCase().includes(query)
+      )
     );
-  });
+  }, [facilities, search]);
+
+  const columns = [
+    ['patient_id', 'Patient ID'],
+    ['health_facility', 'Health Facility'],
+    ['facility_type', 'Facility Type'],
+    ['district', 'District'],
+    ['region', 'Region'],
+  ];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* 🔍 Search Panel */}
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-[#003366]">Facility Details</h2>
+      <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-5">
+        <div>
+          <h2 className="text-2xl font-bold text-teal-700">Facility</h2>
+          <p className="text-sm text-gray-500">
+            Health facility information
+          </p>
+        </div>
+
         <input
-          type="text"
-          placeholder="Search by name or case source..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#003366] w-80"
+          placeholder="Search facilities..."
+          className="w-full md:w-96 px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto shadow rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Designation</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date reported</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Form Completed By</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Health Facility Code</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Case source</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reporting Method</th> 
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredFacility.map((c, i) => (
-              <tr key={i} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-2">{c.patient_id}</td>
-                <td className="px-4 py-2">{c.designation}</td>
-                <td className="px-4 py-2">{c.date_reported}</td>
-                <td className="px-4 py-2">{c.form_completed_by}</td>
-                <td className="px-4 py-2">{c.health_facility_code}</td>
-                <td className="px-4 py-2">{c.case_source}</td>
-                <td className="px-4 py-2">{c.reporting_method}</td>
-              </tr>
-            ))}
-            {filteredFacility.length === 0 && (
-              <tr>
-                <td colSpan="6" className="text-center px-4 py-6 text-gray-400">
-                  No Facility details found.
-                </td>  
-              </tr>
-            )}
-          </tbody>
-        </table>    
+      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+       
+          <div className="overflow-x-auto">
+            <table className="min-w-[900px] w-full">
+              <thead className="bg-teal-50">
+                <tr>
+                  {columns.map(([key, label]) => (
+                    <th
+                      key={key}
+                      className="px-4 py-3 text-left text-xs font-semibold uppercase text-teal-700"
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y">
+                {filtered.map((c, i) => (
+                  <tr key={c.id ?? i} className="hover:bg-teal-50/50">
+                    {columns.map(([key]) => (
+                      <td key={key} className="px-4 py-3">
+                        {c[key] ?? '-'}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>   
+        
+
+        {!loading && filtered.length === 0 && (
+          <div className="p-10 text-center text-gray-400">
+            No facility records found.
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default FacilityTablePage;  
-  
+export default FacilityTable;         

@@ -1,76 +1,95 @@
-import React, { useEffect, useState } from 'react';
-import api from "../../api/api";
+import React, { useEffect, useMemo, useState } from 'react';
+import { getSurveillance } from '../../api/api';
+          
+const SurveillanceTable = () => {
+  const [records, setRecords] = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
-const Surveillance_infoTablePage = () => {
-  const [surveillance_info, setSurveillance_info] = useState([]);
-  const [search, setSearch] = useState("");  
-
-  useEffect(() => {   
-    api.get('/surveillance_info/').then(res => setSurveillance_info(res.data));
+  useEffect(() => {
+    getSurveillance()
+      .then((res) => setRecords(res.data))
+      .catch((err) => console.error('Error loading surveillance:', err))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Filter cases by search query
-  const filteredSurveillance_info = surveillance_info.filter((c) => {
+  const filtered = useMemo(() => {
     const query = search.toLowerCase();
-    return (
-      c.full_name?.toLowerCase().includes(query) ||
-      c.symptoms?.toLowerCase().includes(query) ||
-      c.disease?.toLowerCase().includes(query)
+
+    return records.filter((c) =>
+      Object.values(c).some((value) =>
+        String(value ?? '').toLowerCase().includes(query)
+      )
     );
-  });
+  }, [records, search]);
+
+  const columns = [
+    ['patient_id', 'Patient ID'],
+    ['notifier_signature', 'Notifier'],
+    ['reviewed_by', 'Reviewed By'],
+    ['supervisor_comments', 'Supervisor Comments'],
+  ];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* 🔍 Search Panel */}
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-[#003366]">Surveillance info</h2>
+      <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-5">
+        <div>
+          <h2 className="text-2xl font-bold text-teal-700">
+            Surveillance
+          </h2>
+          <p className="text-sm text-gray-500">
+            Surveillance and reporting information
+          </p>
+        </div>
+
         <input
-          type="text"
-          placeholder="Search by name, district, or disease..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#003366] w-80"
+          placeholder="Search surveillance..."
+          className="w-full md:w-96 px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto shadow rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reporting Week Number</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Year</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Reported</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Notifier Signature</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reviewed By</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Supervisor Comments</th> 
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredSurveillance_info.map((c, i) => (   
-              <tr key={i} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-2">{c.patient_id}</td>   
-                <td className="px-4 py-2">{c.reporting_week_number}</td>
-                <td className="px-4 py-2">{c.year}</td>
-                <td className="px-4 py-2">{c.date_reported}</td>
-                <td className="px-4 py-2">{c.notifier_signature}</td>
-                <td className="px-4 py-2">{c.reviewed_by}</td>
-                <td className="px-4 py-2">{c.supervisor_comments}</td>
-              </tr>
-            ))}
-            {filteredSurveillance_info.length === 0 && (
-              <tr>
-                <td colSpan="6" className="text-center px-4 py-6 text-gray-400">
-                  No surveillance info found.
-                </td>
-              </tr>
-            )}  
-          </tbody>
-        </table>    
+      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+       
+          <div className="overflow-x-auto">
+            <table className="min-w-[900px] w-full">
+              <thead className="bg-teal-50">
+                <tr>
+                  {columns.map(([key, label]) => (
+                    <th
+                      key={key}
+                      className="px-4 py-3 text-left text-xs font-semibold uppercase text-teal-700"
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y">
+                {filtered.map((c, i) => (
+                  <tr key={c.id ?? i} className="hover:bg-teal-50/50">
+                    {columns.map(([key]) => (
+                      <td key={key} className="px-4 py-3">
+                        {c[key] ?? '-'}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+         
+
+        {!loading && filtered.length === 0 && (
+          <div className="p-10 text-center text-gray-400">
+            No surveillance records found.
+          </div>
+        )}
       </div>
     </div>
-  );
+  );   
 };
 
-export default Surveillance_infoTablePage;
+export default SurveillanceTable;          

@@ -1,177 +1,256 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
   PieChart,
   Pie,
   Cell,
-  XAxis,              
+  XAxis,
   YAxis,
-  Tooltip,
+  Tooltip,       
   LineChart,
   Line,
   ResponsiveContainer,
-  CartesianGrid,
   Legend,
-} from 'recharts';
+  CartesianGrid,
+} from "recharts";
+
 import {
-  ArrowPathIcon,
-  BuildingOffice2Icon,
-  MapIcon,
-  ChartBarIcon,
-  FunnelIcon,
-} from '@heroicons/react/24/outline';
-import api from '../api/api';
+  getCases,
+  getClinical,
+  getFacilities,
+} from "../api/api";
 
-// ======================================================
+// =====================================================
 // THEME
-// ======================================================
+// =====================================================
 
-const TEAL = '#14B8A6';
-const DARK_TEAL = '#0F766E';
-const LIGHT_TEAL = '#CCFBF1';
-const CYAN = '#06B6D4';
+const TEAL = "#0f766e";
+const TEAL_LIGHT = "#14b8a6";
+const TEAL_DARK = "#115e59";
 
 const PIE_COLORS = [
-  '#14B8A6',
-  '#06B6D4',
-  '#0F766E',
-  '#2DD4BF',
-  '#5EEAD4',
-  '#0891B2',
-  '#0E7490',
-  '#67E8F9',
+  "#0f766e",
+  "#14b8a6",
+  "#2dd4bf",
+  "#5eead4",
+  "#99f6e4",
+  "#0d9488",
+  "#134e4a",
+  "#115e59",
 ];
 
-// ======================================================
-// DASHBOARD
-// ======================================================
+// =====================================================
+// HELPERS
+// =====================================================
+
+const getArray = (response) => {
+  const data = response?.data;
+
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.results)) return data.results;
+
+  return [];
+};
+
+const getValue = (obj, keys) => {
+  for (const key of keys) {
+    const value = obj?.[key];
+
+    if (
+      value !== undefined &&
+      value !== null &&
+      String(value).trim() !== ""
+    ) {
+      return value;
+    }
+  }
+
+  return "Unknown";
+};
 
 const Dashboard = () => {
   const [cases, setCases] = useState([]);
-  const [yearFilter, setYearFilter] = useState('');
-  const [sexFilter, setSexFilter] = useState('');
-  const [regionFilter, setRegionFilter] = useState('');
+  const [clinical, setClinical] = useState([]);
+  const [facilities, setFacilities] = useState([]);
+
+  const [yearFilter, setYearFilter] = useState("");
+  const [sexFilter, setSexFilter] = useState("");
+  const [regionFilter, setRegionFilter] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // ====================================================
-  // FETCH CASES
-  // ====================================================
+  // =====================================================
+  // LOAD DASHBOARD DATA
+  // =====================================================
 
-  const fetchCases = async (showRefresh = false) => {
+  const loadDashboard = async () => {
+    setLoading(true);
+    setErrorMessage("");
+
     try {
-      if (showRefresh) {
-        setRefreshing(true);
+      const [casesResponse, clinicalResponse, facilitiesResponse] =
+        await Promise.allSettled([
+          getCases(),
+          getClinical(),
+          getFacilities(),
+        ]);
+
+      if (casesResponse.status === "fulfilled") {
+        setCases(getArray(casesResponse.value));
       } else {
-        setLoading(true);
+        console.error("Cases error:", casesResponse.reason);
       }
 
-      setError('');
+      if (clinicalResponse.status === "fulfilled") {
+        setClinical(getArray(clinicalResponse.value));
+      } else {
+        console.error("Clinical error:", clinicalResponse.reason);
+      }
 
-      const response = await api.get('cases/');
-      const data = Array.isArray(response.data) ? response.data : [];
+      if (facilitiesResponse.status === "fulfilled") {
+        setFacilities(getArray(facilitiesResponse.value));
+      } else {
+        console.error("Facilities error:", facilitiesResponse.reason);
+      }
 
-      setCases(data);
-    } catch (err) {
-      console.error('Error loading cases:', err);
-
-      setError(
-        err?.response?.data?.detail ||
-        err?.message ||
-        'Unable to load surveillance cases.'
-      );
+      if (
+        casesResponse.status === "rejected" &&
+        clinicalResponse.status === "rejected" &&
+        facilitiesResponse.status === "rejected"
+      ) {
+        setErrorMessage("Unable to load dashboard data.");
+      }
+    } catch (error) {
+      console.error("Dashboard error:", error);
+      setErrorMessage("Unable to load dashboard data.");
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchCases();
+    loadDashboard();
   }, []);
 
-  // ====================================================
-  // FILTER OPTIONS
-  // ====================================================
-
-  const years = useMemo(() => {
-    return [
-      ...new Set(
-        cases
-          .map((c) => c.reporting_year)
-          .filter((value) => value !== null && value !== undefined && value !== '')
-      ),
-    ].sort((a, b) => String(b).localeCompare(String(a)));
-  }, [cases]);
-
-  const regions = useMemo(() => {
-    return [
-      ...new Set(
-        cases
-          .map((c) => c.region)
-          .filter((value) => value !== null && value !== undefined && value !== '')
-      ),
-    ].sort();
-  }, [cases]);
-
-  // ====================================================
+  // =====================================================
   // FILTER CASES
-  // ====================================================
+  // =====================================================
 
   const filteredCases = useMemo(() => {
     return cases.filter((c) => {
-      const matchYear = yearFilter
-        ? String(c.reporting_year) === String(yearFilter)
-        : true;
+      const year = String(
+        getValue(c, ["reporting_year", "year"])
+      );
 
+      const sex = String(
+        getValue(c, ["sex", "gender"])
+      );
+
+      const region = String(
+        getValue(c, ["region"])
+      );
+
+      const matchYear = yearFilter ? year === yearFilter : true;
       const matchSex = sexFilter
-        ? String(c.sex || '').toLowerCase() === sexFilter.toLowerCase()
+        ? sex.toLowerCase() === sexFilter.toLowerCase()
         : true;
-
       const matchRegion = regionFilter
-        ? String(c.region || '').toLowerCase() === regionFilter.toLowerCase()
+        ? region.toLowerCase() === regionFilter.toLowerCase()
         : true;
 
       return matchYear && matchSex && matchRegion;
     });
   }, [cases, yearFilter, sexFilter, regionFilter]);
 
-  // ====================================================
-  // SUMMARY STATISTICS
-  // ====================================================
+  // =====================================================
+  // FILTER CLINICAL DATA
+  // =====================================================
+
+  const filteredClinical = useMemo(() => {
+    if (!clinical.length) return [];
+
+    return clinical.filter((item) => {
+      const year = String(
+        getValue(item, [
+          "reporting_year",
+          "year",
+        ])
+      );
+
+      const sex = String(
+        getValue(item, ["sex", "gender"])
+      );
+
+      const region = String(
+        getValue(item, ["region"])
+      );
+
+      const matchYear = yearFilter ? year === yearFilter : true;
+
+      const matchSex = sexFilter
+        ? sex.toLowerCase() === sexFilter.toLowerCase()
+        : true;
+
+      const matchRegion = regionFilter
+        ? region.toLowerCase() === regionFilter.toLowerCase()
+        : true;
+
+      return matchYear && matchSex && matchRegion;
+    });
+  }, [clinical, yearFilter, sexFilter, regionFilter]);
+
+  // =====================================================
+  // SUMMARY
+  // =====================================================
 
   const totalCases = filteredCases.length;
 
-  const totalDistricts = new Set(
-    filteredCases
-      .map((c) => c.district)
-      .filter((value) => value !== null && value !== undefined && value !== '')
-  ).size;
+  const totalDistricts = useMemo(() => {
+    return new Set(
+      filteredCases
+        .map((c) => getValue(c, ["district"]))
+        .filter((value) => value !== "Unknown")
+    ).size;
+  }, [filteredCases]);
 
-  const totalFacilities = new Set(
-    filteredCases
-      .map((c) => c.health_facility)
-      .filter((value) => value !== null && value !== undefined && value !== '')
-  ).size;
+  const totalFacilities = facilities.length;
 
-  const totalDiseases = new Set(
-    filteredCases
-      .map((c) => c.disease)
-      .filter((value) => value !== null && value !== undefined && value !== '')
-  ).size;
+  // =====================================================
+  // YEARS
+  // =====================================================
 
-  // ====================================================
+  const years = useMemo(() => {
+    return [
+      ...new Set(
+        cases
+          .map((c) =>
+            getValue(c, ["reporting_year", "year"])
+          )
+          .filter((year) => year !== "Unknown")
+          .map(String)
+      ),
+    ].sort((a, b) => b.localeCompare(a));
+  }, [cases]);
+
+  // =====================================================
   // CASES OVER TIME
-  // ====================================================
+  // =====================================================
 
   const chartData = useMemo(() => {
     const grouped = filteredCases.reduce((acc, c) => {
-      const date = c.date_reported || 'Unknown';
+      const date = getValue(c, [
+        "date_reported",
+        "reporting_date",
+        "date",
+      ]);
 
-      acc[date] = (acc[date] || 0) + 1;
+      if (!acc[date]) {
+        acc[date] = 0;
+      }
+
+      acc[date] += 1;
 
       return acc;
     }, {});
@@ -181,26 +260,48 @@ const Dashboard = () => {
         date,
         count,
       }))
-      .sort((a, b) => {
-        if (a.date === 'Unknown') return 1;
-        if (b.date === 'Unknown') return -1;
-
-        return new Date(a.date) - new Date(b.date);
-      });
+      .sort(
+        (a, b) =>
+          new Date(a.date).getTime() -
+          new Date(b.date).getTime()
+      );
   }, [filteredCases]);
 
-  // ====================================================
-  // CASES BY DISEASE
-  // ====================================================
+  // =====================================================
+  // DISEASE DATA
+  // USE BOTH CASES + CLINICAL
+  // =====================================================
 
   const diseaseData = useMemo(() => {
-    const grouped = filteredCases.reduce((acc, c) => {
-      const disease = c.disease || 'Unknown';
+    const grouped = {};
 
-      acc[disease] = (acc[disease] || 0) + 1;
+    filteredCases.forEach((c) => {
+      const disease = getValue(c, [
+        "disease",
+        "disease_name",
+        "condition",
+      ]);
 
-      return acc;
-    }, {});
+      grouped[disease] = (grouped[disease] || 0) + 1;
+    });
+
+    filteredClinical.forEach((c) => {
+      const disease = getValue(c, [
+        "disease",
+        "disease_name",
+        "condition",
+        "diagnosis",
+      ]);
+
+      /*
+       * Only add clinical records when they contain
+       * a meaningful disease value.
+       */
+      if (disease !== "Unknown") {
+        grouped[disease] =
+          (grouped[disease] || 0) + 1;
+      }
+    });
 
     return Object.entries(grouped)
       .map(([disease, count]) => ({
@@ -208,15 +309,15 @@ const Dashboard = () => {
         count,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [filteredCases]);
+  }, [filteredCases, filteredClinical]);
 
-  // ====================================================
-  // CASES BY DISTRICT
-  // ====================================================
+  // =====================================================
+  // DISTRICT DATA
+  // =====================================================
 
   const districtData = useMemo(() => {
     const grouped = filteredCases.reduce((acc, c) => {
-      const district = c.district || 'Unknown';
+      const district = getValue(c, ["district"]);
 
       acc[district] = (acc[district] || 0) + 1;
 
@@ -231,226 +332,174 @@ const Dashboard = () => {
       .sort((a, b) => b.count - a.count);
   }, [filteredCases]);
 
-  // ====================================================
-  // CLEAR FILTERS
-  // ====================================================
+  // =====================================================
+  // FACILITY DATA
+  // =====================================================
 
-  const clearFilters = () => {
-    setYearFilter('');
-    setSexFilter('');
-    setRegionFilter('');
-  };
+  const facilityData = useMemo(() => {
+    const grouped = {};
 
-  const hasFilters = yearFilter || sexFilter || regionFilter;
+    /*
+     * Prefer actual facility endpoint.
+     */
+    facilities.forEach((facility) => {
+      const name = getValue(facility, [
+        "name",
+        "facility_name",
+        "health_facility",
+        "facility",
+      ]);
 
-  // ====================================================
-  // STAT CARD
-  // ====================================================
+      if (name !== "Unknown") {
+        grouped[name] = grouped[name] || 0;
+      }
+    });
 
-  const StatCard = ({
-    title,
-    value,
-    icon: Icon,
-    description,
-  }) => {
-    return (
-      <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-        <div className="p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500">
-                {title}
-              </p>
+    /*
+     * Count cases associated with facilities.
+     */
+    filteredCases.forEach((c) => {
+      const facility = getValue(c, [
+        "health_facility",
+        "facility",
+        "facility_name",
+        "health_facility_name",
+      ]);
 
-              <p
-                className="mt-2 text-3xl font-bold"
-                style={{ color: DARK_TEAL }}
-              >
-                {value.toLocaleString()}
-              </p>
+      if (facility !== "Unknown") {
+        grouped[facility] =
+          (grouped[facility] || 0) + 1;
+      }
+    });
 
-              <p className="mt-1 text-xs text-gray-400">
-                {description}
-              </p>
-            </div>
+    return Object.entries(grouped)
+      .map(([facility, count]) => ({
+        facility,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 15);
+  }, [facilities, filteredCases]);
 
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
-              style={{
-                backgroundColor: LIGHT_TEAL,
-                color: TEAL,
-              }}
-            >
-              <Icon className="w-6 h-6" />
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="h-1 w-full"
-          style={{ backgroundColor: TEAL }}
-        />
-      </div>
-    );
-  };
-
-  // ====================================================
-  // LOADING
-  // ====================================================
-   
-  // ERROR
-  // ====================================================
-
-  if (error && cases.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-3xl mx-auto mt-12">
-          <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-8 text-center">
-            <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
-              <ChartBarIcon className="w-7 h-7" />
-            </div>
-
-            <h2 className="mt-4 text-xl font-bold text-gray-800">
-              Unable to load dashboard
-            </h2>
-
-            <p className="mt-2 text-sm text-gray-500">
-              {error}
-            </p>
-
-            <button
-              onClick={() => fetchCases()}
-              className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-medium transition hover:opacity-90"
-              style={{ backgroundColor: TEAL }}
-            >
-              <ArrowPathIcon className="w-5 h-5" />
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ====================================================
-  // MAIN DASHBOARD
-  // ====================================================
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
 
-      {/* =================================================
-          HEADER
-      ================================================= */}
+      {/* HEADER */}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-7">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+
         <div>
-          <div className="flex items-center gap-3">
-            <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center"
-              style={{
-                backgroundColor: LIGHT_TEAL,
-                color: TEAL,
-              }}
-            >
-              <ChartBarIcon className="w-6 h-6" />
+          <p className="text-sm font-medium text-teal-700">
+            Integrated Disease Surveillance and Response
+          </p>
+
+          <h1 className="text-3xl font-bold text-slate-800">
+            Dashboard
+          </h1>
+
+          <p className="text-sm text-slate-500 mt-1">
+            Disease surveillance overview and reporting statistics
+          </p>
+        </div>
+
+                
+      </div>
+
+      {/* ERROR */}
+
+      {errorMessage && (
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+          {errorMessage}
+        </div>
+      )}
+
+      {/* SUMMARY CARDS */}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+
+        <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                Total Cases
+              </p>
+
+              <p className="text-3xl font-bold text-teal-700 mt-1">
+                {loading ? "—" : totalCases}
+              </p>
             </div>
 
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                Surveillance Dashboard
-              </h1>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Integrated Disease Surveillance and Response
-              </p>
+            <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 text-xl">
+              ✓
             </div>
           </div>
         </div>
 
-       
-      </div>
+        <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                Districts
+              </p>
 
-      {/* =================================================
-          ERROR BANNER
-      ================================================= */}
-
-      {error && (
-        <div className="mb-6 bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-sm">
-          {error}
-        </div>
-      )}    
-
-      {/* =================================================
-          SUMMARY CARDS
-      ================================================= */}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-7">
-
-        <StatCard
-          title="Total Cases"
-          value={totalCases}
-          icon={ChartBarIcon}
-          description={
-            hasFilters
-              ? 'Cases matching filters'
-              : 'All reported cases'
-          }
-        />
-
-        <StatCard
-          title="Districts"
-          value={totalDistricts}
-          icon={MapIcon}
-          description="Affected districts"
-        />
-
-        <StatCard
-          title="Facilities"
-          value={totalFacilities}
-          icon={BuildingOffice2Icon}
-          description="Reporting facilities"
-        />
-
-        <StatCard
-          title="Diseases"
-          value={totalDiseases}
-          icon={FunnelIcon}
-          description="Diseases recorded"
-        />
-
-      </div>
-
-      {/* =================================================
-          FILTERS
-      ================================================= */}
-
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-7">
-
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-
-          <div>
-            <div className="flex items-center gap-2">
-              <FunnelIcon
-                className="w-5 h-5"
-                style={{ color: TEAL }}
-              />
-
-              <h2 className="font-semibold text-gray-800">
-                Filter Cases
-              </h2>
+              <p className="text-3xl font-bold text-teal-700 mt-1">
+                {loading ? "—" : totalDistricts}
+              </p>
             </div>
 
-            <p className="text-xs text-gray-400 mt-1">
-              Narrow the dashboard results by year, sex, or region.
+            <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 text-xl">
+              ◉
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                Health Facilities
+              </p>
+
+              <p className="text-3xl font-bold text-teal-700 mt-1">
+                {loading ? "—" : totalFacilities}
+              </p>
+            </div>
+
+            <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 text-xl">
+              +
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* FILTERS */}
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
+
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-semibold text-slate-800">
+              Dashboard Filters
+            </h2>
+
+            <p className="text-xs text-slate-500 mt-1">
+              Filter cases and clinical information
             </p>
           </div>
 
-          {hasFilters && (
+          {(yearFilter || sexFilter || regionFilter) && (
             <button
-              onClick={clearFilters}
-              className="text-sm font-medium hover:underline"
-              style={{ color: DARK_TEAL }}
+              onClick={() => {
+                setYearFilter("");
+                setSexFilter("");
+                setRegionFilter("");
+              }}
+              className="text-sm text-teal-700 hover:text-teal-900 font-medium"
             >
               Clear filters
             </button>
@@ -459,324 +508,246 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-          {/* Year */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-              Reporting Year
-            </label>
+          <select
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="">All Years</option>
 
-            <select
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-400"
-            >
-              <option value="">All Years</option>
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
 
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={sexFilter}
+            onChange={(e) => setSexFilter(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="">All Sex</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
 
-          {/* Sex */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-              Sex
-            </label>
+          <select
+            value={regionFilter}
+            onChange={(e) => setRegionFilter(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="">All Regions</option>
 
-            <select
-              value={sexFilter}
-              onChange={(e) => setSexFilter(e.target.value)}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-400"
-            >
-              <option value="">All Sex</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-          </div>
-
-          {/* Region */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-              Region
-            </label>
-
-            <select
-              value={regionFilter}
-              onChange={(e) => setRegionFilter(e.target.value)}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-400"
-            >
-              <option value="">All Regions</option>
-
-              {regions.map((region) => (
-                <option key={region} value={region}>
-                  {region}
-                </option>
-              ))}
-            </select>
-          </div>
+            {[
+              ...new Set(
+                cases
+                  .map((c) => getValue(c, ["region"]))
+                  .filter((r) => r !== "Unknown")
+              ),
+            ].map((region) => (
+              <option key={region} value={region}>
+                {region}
+              </option>
+            ))}
+          </select>
 
         </div>
       </div>
 
-      {/* =================================================
-          CHARTS
-      ================================================= */}
+      {/* CHARTS */}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-        {/* Cases Over Time */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        {/* CASES OVER TIME */}
 
-          <div className="mb-5">
-            <h2 className="text-lg font-bold text-gray-800">
-              Cases Over Time
-            </h2>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
 
-            <p className="text-xs text-gray-400 mt-1">
-              Reported cases by date
-            </p>
-          </div>
+          <h2 className="text-lg font-semibold text-slate-800">
+            Cases Over Time
+          </h2>
 
-          <div className="h-[320px]">
+          <p className="text-sm text-slate-500 mb-4">
+            Reported cases by reporting date
+          </p>
 
-            {chartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-sm text-gray-400">
-                No time-series data available
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={chartData}
-                  margin={{
-                    top: 10,
-                    right: 15,
-                    left: 0,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="#E5E7EB"
-                  />
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={chartData}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e2e8f0"
+              />
 
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11 }}
+              />
 
-                  <YAxis
-                    allowDecimals={false}
-                    tick={{ fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
+              <YAxis allowDecimals={false} />
 
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: '12px',
-                      border: '1px solid #E5E7EB',
-                      boxShadow:
-                        '0 4px 12px rgba(0,0,0,0.08)',
-                    }}
-                  />
+              <Tooltip />
 
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    name="Cases"
-                    stroke={TEAL}
-                    strokeWidth={3}
-                    dot={{
-                      r: 4,
-                      fill: TEAL,
-                    }}
-                    activeDot={{
-                      r: 6,
-                    }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-
-          </div>
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke={TEAL}
+                strokeWidth={3}
+                dot={{ r: 3 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Districts */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        {/* CASES BY DISTRICT */}
 
-          <div className="mb-5">
-            <h2 className="text-lg font-bold text-gray-800">
-              Cases by District
-            </h2>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
 
-            <p className="text-xs text-gray-400 mt-1">
-              Distribution of reported cases
-            </p>
-          </div>
+          <h2 className="text-lg font-semibold text-slate-800">
+            Cases by District
+          </h2>
 
-          <div className="h-[320px]">
+          <p className="text-sm text-slate-500 mb-4">
+            Distribution of reported cases across districts
+          </p>
 
-            {districtData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-sm text-gray-400">
-                No district data available
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={districtData}
-                  margin={{
-                    top: 10,
-                    right: 15,
-                    left: 0,
-                    bottom: 45,
-                  }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="#E5E7EB"
-                    vertical={false}
-                  />
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={districtData}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e2e8f0"
+              />
 
-                  <XAxis
-                    dataKey="district"
-                    angle={-35}
-                    textAnchor="end"
-                    interval={0}
-                    tick={{ fontSize: 10 }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
+              <XAxis
+                dataKey="district"
+                tick={{ fontSize: 11 }}
+                angle={-25}
+                textAnchor="end"
+                height={60}
+              />
 
-                  <YAxis
-                    allowDecimals={false}
-                    tick={{ fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
+              <YAxis allowDecimals={false} />
 
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: '12px',
-                      border: '1px solid #E5E7EB',
-                    }}
-                  />
+              <Tooltip />
 
-                  <Bar
-                    dataKey="count"
-                    name="Cases"
-                    fill={TEAL}
-                    radius={[6, 6, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-
-          </div>
+              <Bar
+                dataKey="count"
+                fill={TEAL_LIGHT}
+                radius={[6, 6, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Disease Distribution */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 xl:col-span-2">
+        {/* DISEASE DISTRIBUTION */}
 
-          <div className="mb-5">
-            <h2 className="text-lg font-bold text-gray-800">
-              Disease Distribution
-            </h2>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
 
-            <p className="text-xs text-gray-400 mt-1">
-              Distribution of cases by disease
-            </p>
-          </div>
+          <h2 className="text-lg font-semibold text-slate-800">
+            Disease Distribution
+          </h2>
 
-          <div className="h-[380px]">
+          <p className="text-sm text-slate-500 mb-4">
+            Disease information from cases and clinical records
+          </p>
 
-            {diseaseData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-sm text-gray-400">
-                No disease data available
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+          <ResponsiveContainer width="100%" height={350}>
+            <PieChart>
 
-                  <Pie
-                    data={diseaseData}
-                    dataKey="count"
-                    nameKey="disease"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={125}
-                    innerRadius={60}
-                    paddingAngle={2}
-                    labelLine={false}
-                    label={({ disease, percent }) =>
-                      `${disease} ${(percent * 100).toFixed(0)}%`
+              <Pie
+                data={diseaseData}
+                dataKey="count"
+                nameKey="disease"
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                innerRadius={55}
+                paddingAngle={2}
+                label
+              >
+                {diseaseData.map((entry, index) => (
+                  <Cell
+                    key={`disease-${index}`}
+                    fill={
+                      PIE_COLORS[
+                        index % PIE_COLORS.length
+                      ]
                     }
-                  >
-                    {diseaseData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={
-                          PIE_COLORS[
-                          index % PIE_COLORS.length
-                          ]
-                        }
-                      />
-                    ))}
-                  </Pie>
-
-                  <Tooltip />
-
-                  <Legend
-                    verticalAlign="bottom"
-                    height={36}
                   />
+                ))}
+              </Pie>
 
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+              <Tooltip />
 
-          </div>
+              <Legend />
+
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* FACILITIES */}
+
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+
+          <h2 className="text-lg font-semibold text-slate-800">
+            Cases by Health Facility
+          </h2>
+
+          <p className="text-sm text-slate-500 mb-4">
+            Facilities reporting cases
+          </p>
+
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart
+              data={facilityData}
+              layout="vertical"
+              margin={{
+                left: 20,
+                right: 20,
+              }}
+            >
+
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e2e8f0"
+              />
+
+              <XAxis
+                type="number"
+                allowDecimals={false}
+              />
+
+              <YAxis
+                type="category"
+                dataKey="facility"
+                width={130}
+                tick={{ fontSize: 11 }}
+              />
+
+              <Tooltip />
+
+              <Bar
+                dataKey="count"
+                fill={TEAL}
+                radius={[0, 6, 6, 0]}
+              />
+
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
       </div>
 
-      {/* =================================================
-          FOOTER SUMMARY
-      ================================================= */}
+      {/* DATA STATUS */}
 
-      <div className="mt-7 bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-
-          <p className="text-sm text-gray-500">
-            Showing{' '}
-            <span
-              className="font-bold"
-              style={{ color: DARK_TEAL }}
-            >
-              {filteredCases.length.toLocaleString()}
-            </span>{' '}
-            of{' '}
-            <span className="font-semibold text-gray-700">
-              {cases.length.toLocaleString()}
-            </span>{' '}
-            cases
-          </p>
-
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <span
-              className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: TEAL }}
-            />
-
-            Live surveillance data
-          </div>
-
-        </div>
+      <div className="mt-6 bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 text-sm text-teal-800">
+        Showing{" "}
+        <strong>{filteredCases.length}</strong>{" "}
+        cases,{" "}
+        <strong>{filteredClinical.length}</strong>{" "}
+        clinical records, and{" "}
+        <strong>{facilities.length}</strong>{" "}
+        health facilities.
       </div>
 
     </div>
