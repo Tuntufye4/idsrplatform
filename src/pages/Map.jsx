@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import api from "../api/api";
 import MalawiOutline from '../assets/mw.svg';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
-import 'react-tooltip/dist/react-tooltip.css';
+import 'react-tooltip/dist/react-tooltip.css';     
 
 // Geographic bounds of Malawi used in the SVG viewBox
 const LON_MIN = 32.4;
@@ -80,7 +80,7 @@ const MapView = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <h2 className="text-2xl font-semibold mb-6 text-gray-800">
-        Cases by District 
+        Cases by District
       </h2>
 
       <div className="relative w-full max-w-6xl mx-auto rounded-xl shadow-lg overflow-hidden bg-white">
@@ -139,9 +139,8 @@ const MapView = () => {
         <span className="w-4 h-4 bg-red-600 rounded-full"></span>
         <span className="text-sm text-gray-700">Number of Cases</span>
       </div>
-    </div>   
+    </div>
   );
 };
 
 export default MapView;
-   

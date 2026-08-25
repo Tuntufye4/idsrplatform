@@ -15,7 +15,7 @@ const ClinicalReportPage = () => {
     api.get('/clinical/').then((res) => {
       setCases(res.data);
       setFiltered(res.data);
-    });
+    });    
   }, []);
 
   useEffect(() => {

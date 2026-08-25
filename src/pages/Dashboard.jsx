@@ -368,18 +368,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <button
-          onClick={() => fetchCases(true)}
-          disabled={refreshing}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 hover:text-teal-700 hover:border-teal-200 shadow-sm transition disabled:opacity-60"
-        >
-          <ArrowPathIcon
-            className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''
-              }`}
-          />
-
-          {refreshing ? 'Refreshing...' : 'Refresh'}
-        </button>
+       
       </div>
 
       {/* =================================================
@@ -390,7 +379,7 @@ const Dashboard = () => {
         <div className="mb-6 bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-sm">
           {error}
         </div>
-      )}
+      )}    
 
       {/* =================================================
           SUMMARY CARDS
