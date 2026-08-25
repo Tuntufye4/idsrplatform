@@ -1,179 +1,414 @@
-import React, { useEffect, useState, useRef } from 'react';
-import dayjs from 'dayjs';
-import api from '../../api/api';    
-import html2pdf from 'html2pdf.js';
-      
+import React, { useEffect, useRef, useState } from "react";
+import dayjs from "dayjs";
+import html2pdf from "html2pdf.js";
+import { getCases } from "../../api/api";
 
-const DemographicsReportPage = () => {
+const TEAL = "#14B8A6";
+const DARK_TEAL = "#0F766E";
+
+const DemographicsReport = () => {         
   const [cases, setCases] = useState([]);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');    
-  const [filtered, setFiltered] = useState([]);   
-  const reportRef = useRef();
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const reportRef = useRef(null);
 
   useEffect(() => {
-    api.get('/cases/').then((res) => {
-      setCases(res.data);
-      setFiltered(res.data);
-    });
+    loadCases();
   }, []);
 
-  useEffect(() => {
-    if (startDate && endDate) {
-      const filteredData = cases.filter((c) => {
-        const date = dayjs(c.date_reported);
-        return date.isAfter(startDate) && date.isBefore(endDate);
-      });
-      setFiltered(filteredData);
-    }
-  }, [startDate, endDate, cases]);
+  const loadCases = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-  const exportToPDF = () => {
-    const element = reportRef.current;
-    const opt = {
-      margin: 0.5,
-      filename: 'idsr_demographics_report.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
+      const response = await getCases();
+      setCases(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error("Demographics report error:", err);
+      setError("Unable to load case data.");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const filtered = cases.filter((item) => {
+    if (!item.date_reported) return !startDate && !endDate;
+
+    const date = dayjs(item.date_reported);
+
+    const afterStart = startDate
+      ? date.isSame(dayjs(startDate), "day") ||
+        date.isAfter(dayjs(startDate), "day")
+      : true;
+
+    const beforeEnd = endDate
+      ? date.isSame(dayjs(endDate), "day") ||
+        date.isBefore(dayjs(endDate), "day")
+      : true;
+
+    return afterStart && beforeEnd;
+  });
+
   const groupBy = (key) =>
-    filtered.reduce((acc, curr) => {
-      const val = curr[key] || 'Unknown';
-      acc[val] = (acc[val] || 0) + 1;
+    filtered.reduce((acc, item) => {
+      const value =
+        item[key] === null ||
+        item[key] === undefined ||
+        item[key] === ""
+          ? "Unknown"
+          : String(item[key]);
+
+      acc[value] = (acc[value] || 0) + 1;
       return acc;
     }, {});
 
-  const count = (conditionFn) => filtered.filter(conditionFn).length;
+  const ageGroups = [
+    {
+      label: "0–4 years",
+      fn: (age) => age >= 0 && age <= 4,
+    },
+    {
+      label: "5–14 years",
+      fn: (age) => age >= 5 && age <= 14,
+    },
+    {
+      label: "15–49 years",
+      fn: (age) => age >= 15 && age <= 49,
+    },
+    {
+      label: "50+ years",
+      fn: (age) => age >= 50,
+    },
+  ];
+
+  const getAge = (value) => {
+    const age = Number.parseInt(value, 10);
+    return Number.isNaN(age) ? null : age;
+  };
+
+  const exportToPDF = () => {
+    if (!reportRef.current) return;
+
+    html2pdf()
+      .set({
+        margin: 0.5,
+        filename: "idsr_demographics_report.pdf",
+        image: {
+          type: "jpeg",
+          quality: 0.98,
+        },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+        },
+        jsPDF: {
+          unit: "in",
+          format: "a4",
+          orientation: "portrait",
+        },
+      })
+      .from(reportRef.current)
+      .save();
+  };
+
+  const renderTable = (title, data, number) => (
+    <section>
+      <div className="flex items-center gap-3 mb-3">
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center
+                     text-white font-bold text-sm"
+          style={{ backgroundColor: TEAL }}
+        >
+          {number}
+        </div>
+
+        <h3 className="text-lg font-bold text-gray-800">
+          {title}
+        </h3>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr style={{ backgroundColor: `${TEAL}12` }}>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                Category
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                Cases
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {Object.entries(data)
+              .sort((a, b) => b[1] - a[1])
+              .map(([category, count]) => (
+                <tr
+                  key={category}
+                  className="border-t border-gray-100 hover:bg-gray-50"
+                >
+                  <td className="px-4 py-3">{category}</td>
+                  <td className="px-4 py-3 font-semibold">{count}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+          Demographics Report
+        </h1>
 
-      {/* Filters & Export */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">   
-        <div>
-          <label className="block font-medium mb-1">Start Date</label>   
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
-        <div>
-          <label className="block font-medium mb-1">End Date</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
-        <div>
-          <button
-            onClick={exportToPDF}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            Export to PDF
-          </button>
+        <p className="mt-1 text-sm text-gray-500">
+          Population and geographic distribution of reported cases.
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Start Date
+            </label>
+
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5
+                         focus:border-[#14B8A6] focus:ring-2
+                         focus:ring-[#14B8A6]/20 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              End Date
+            </label>
+
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5
+                         focus:border-[#14B8A6] focus:ring-2
+                         focus:ring-[#14B8A6]/20 outline-none"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+              }}
+              className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5
+                         font-medium text-gray-600 hover:bg-gray-50"
+            >
+              Clear
+            </button>
+
+            <button
+              onClick={exportToPDF}
+              className="flex-1 rounded-xl px-4 py-2.5 text-white
+                         font-semibold hover:opacity-90"
+              style={{ backgroundColor: TEAL }}
+            >
+              Export PDF
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Report Content */}
-      <div ref={reportRef} className="bg-white p-6 rounded-2xl shadow-md space-y-6 text-sm">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">IDSR Demographics Report</h2>
-        <p><strong>Reporting Period:</strong> {startDate || 'N/A'} to {endDate || 'N/A'}</p>
-        <p><strong>Total Cases Reported:</strong> {filtered.length}</p>
+      {error && (
+        <div className="mb-5 rounded-xl bg-red-50 border border-red-200 p-4 text-red-700">
+          {error}
+        </div>
+      )}
 
-        {/* Section Tables */}
-        {[
-          { title: '1. Cases by District', key: 'district' },  
-          { title: '2. Cases by Region', key: 'region' },
-          { title: '3. Cases by Village', key: 'village' },
-          { title: '4. Sex Distribution', key: 'sex' },
-        ].map(({ title, key }) => (
-          <div key={key}>
-            <h3 className="text-lg font-semibold mb-2">{title}</h3>
-            <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="border px-3 py-1 text-gray-600">Category</th>
-                  <th className="border px-3 py-1 text-gray-600">Cases</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(groupBy(key)).map(([k, v]) => (
-                  <tr key={k} className="hover:bg-gray-50 transition">
-                    <td className="border px-3 py-1">{k}</td>
-                    <td className="border px-3 py-1">{v}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div
+        ref={reportRef}
+        className="bg-white rounded-2xl shadow-sm p-5 md:p-8"
+      >
+        <div
+          className="border-b pb-5 mb-7"
+          style={{ borderColor: `${TEAL}40` }}
+        >
+          <h2
+            className="text-2xl font-bold"
+            style={{ color: DARK_TEAL }}
+          >
+            IDSR Demographics Report
+          </h2>
+
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+            <p>
+              <strong>Reporting Period:</strong>{" "}
+              {startDate || "All dates"} — {endDate || "All dates"}
+            </p>
+
+            <p>
+              <strong>Total Cases:</strong>{" "}
+              <span className="font-bold" style={{ color: DARK_TEAL }}>
+                {filtered.length}
+              </span>
+            </p>
           </div>
-        ))}
-
-        {/* Age Group Distribution */}
-        <div>
-          <h3 className="text-lg font-semibold mb-2">5. Age Group Distribution</h3>
-          <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-3 py-1 text-gray-600">Age Group</th>
-                <th className="border px-3 py-1 text-gray-600">Cases</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { label: '0-4 years', fn: (age) => age < 5 },
-                { label: '5-14 years', fn: (age) => age >= 5 && age <= 14 },
-                { label: '15-49 years', fn: (age) => age >= 15 && age <= 49 },
-                { label: '50+ years', fn: (age) => age >= 50 },
-              ].map(({ label, fn }) => {
-                const countGroup = filtered.filter(c => fn(parseInt(c.age))).length;
-                return (
-                  <tr key={label} className="hover:bg-gray-50 transition">
-                    <td className="border px-3 py-1">{label}</td>
-                    <td className="border px-3 py-1">{countGroup}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
         </div>
 
-        {/* Top 5 Districts */}   
-        <div>
-          <h3 className="text-lg font-semibold mb-2">6. Top 5 Districts by Case Burden</h3>
-          <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-left">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-3 py-1 text-gray-600">District</th>
-                <th className="border px-3 py-1 text-gray-600">Cases</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(groupBy('district'))
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5)
-                .map(([district, c]) => (
-                  <tr key={district} className="hover:bg-gray-50 transition">
-                    <td className="border px-3 py-1">{district}</td>
-                    <td className="border px-3 py-1">{c}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
+        {loading ? (
+          <div className="py-16 text-center text-gray-500">
+            Loading demographic data...
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="rounded-xl bg-gray-50 p-10 text-center text-gray-500">
+            No cases found for the selected period.
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {renderTable(
+              "Cases by District",
+              groupBy("district"),
+              1
+            )}
 
+            {renderTable(
+              "Cases by Region",
+              groupBy("region"),
+              2
+            )}
+
+            {renderTable(
+              "Cases by Village",
+              groupBy("village"),
+              3
+            )}
+
+            {renderTable(
+              "Sex Distribution",
+              groupBy("sex"),
+              4
+            )}
+
+            {/* Age groups */}
+            <section>
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center
+                             text-white font-bold text-sm"
+                  style={{ backgroundColor: TEAL }}
+                >
+                  5
+                </div>
+
+                <h3 className="text-lg font-bold text-gray-800">
+                  Age Group Distribution
+                </h3>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-gray-200">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr style={{ backgroundColor: `${TEAL}12` }}>
+                      <th className="px-4 py-3 text-left">
+                        Age Group
+                      </th>
+                      <th className="px-4 py-3 text-left">
+                        Cases
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {ageGroups.map((group) => {
+                      const count = filtered.filter((item) =>
+                        group.fn(getAge(item.age))
+                      ).length;
+
+                      return (
+                        <tr
+                          key={group.label}
+                          className="border-t border-gray-100"
+                        >
+                          <td className="px-4 py-3">
+                            {group.label}
+                          </td>
+                          <td className="px-4 py-3 font-semibold">
+                            {count}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Top districts */}
+            <section>
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center
+                             text-white font-bold text-sm"
+                  style={{ backgroundColor: TEAL }}
+                >
+                  6
+                </div>
+
+                <h3 className="text-lg font-bold text-gray-800">
+                  Top 5 Districts by Case Burden
+                </h3>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-gray-200">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr style={{ backgroundColor: `${TEAL}12` }}>
+                      <th className="px-4 py-3 text-left">
+                        District
+                      </th>
+                      <th className="px-4 py-3 text-left">
+                        Cases
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {Object.entries(groupBy("district"))
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 5)
+                      .map(([district, count]) => (
+                        <tr
+                          key={district}
+                          className="border-t border-gray-100 hover:bg-gray-50"
+                        >
+                          <td className="px-4 py-3">
+                            {district}
+                          </td>
+                          <td className="px-4 py-3 font-semibold">
+                            {count}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        )}
       </div>
     </div>
   );
 };
-    
-export default DemographicsReportPage;     
-  
+
+export default DemographicsReport;

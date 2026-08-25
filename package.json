@@ -12,6 +12,8 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "axios": "^1.11.0",
+    "baseline-browser-mapping": "^2.11.19",
+    "caniuse-lite": "^1.0.30001810",
     "dayjs": "^1.11.18",
     "html2pdf.js": "^0.12.0",
     "leaflet": "^1.9.4",
@@ -39,6 +41,6 @@
     "vite": "^7.0.4"
   },
   "engines": {
-    "node": "20.x"
-  }
+    "node": "24.x"
+  }            
 }

@@ -1,57 +1,160 @@
-import React from 'react';           
-import { Routes, Route } from 'react-router-dom';   
-import Sidebar from './pages/Sidebar';
-import Dashboard from './pages/Dashboard';
-import MapView from './pages/Map';   
-import ClinicalForm from './pages/form/clinical_details';
-import FacilityForm from './pages/form/facility';
-import LabForm from './pages/form/lab';
-import SurveillanceForm from './pages/form/surveillance_info';
-import TreatmentForm from './pages/form/treatment';       
-import EpidemicsForm from './pages/form/epidemiological';  
-import DemographicsForm from './pages/form/demographics';  
-import ClinicalTablePage from './pages/table/clinical_details';   
-import FacilityTablePage from './pages/table/facility';  
-import DemographicsTablePage from './pages/table/demographics';
-import LabTablePage from './pages/table/lab';   
-import Surveillance_infoTablePage from './pages/table/surveillance_info';
-import TreatmentTablePage from './pages/table/treatment';           
-import DemographicsReportPage from './pages/report/demographics';
-import ClinicalReportPage from './pages/report/clinical';
-import EpidemicsTablePage from './pages/table/epidemiological';
-import LabReportPage from './pages/report/lab';
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+
+// =====================================================
+// AUTH      
+// =====================================================
+import Login from "./auth/login";     
+import Register from "./pages/register";    
+    
+// =====================================================
+// MAIN
+// =====================================================
+import Select from "./pages/select";
+import Dashboard from "./pages/dashboard";
+import MapView from "./pages/map";             
+                                        
+// =====================================================
+// FORMS
+// =====================================================
 
 
+// =====================================================
+// TABLES
+// Folder: pages/table/
+// =====================================================
+import TableSidebar from "./pages/table/tablesidebar";
+import DemographicsTable from "./pages/table/demographics";
+import ClinicalTable from "./pages/table/clinical_details";
+import LabTable from "./pages/table/lab";
+import FacilityTable from "./pages/table/facility";
+import TreatmentTable from "./pages/table/treatment";
+import SurveillanceTable from "./pages/table/surveillance_info";
+import EpidemiologicalTable from "./pages/table/epidemiological";
+
+// =====================================================
+// REPORTS
+// Folder: pages/report/
+// =====================================================
+import ReportSidebar from "./pages/report/reportsidebar";
+import ClinicalReport from "./pages/report/clinical";
+import DemographicsReport from "./pages/report/demographics";
+import LabReport from "./pages/report/lab";
+
+function App() {
+  return (
+    <Routes>
+
+      {/* =================================================
+          AUTH
+      ================================================= */}
+
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+
+      {/* =================================================
+          MAIN
+      ================================================= */}
+
+      <Route path="/" element={<Select />} />
+
+      <Route path="/dashboard" element={<Dashboard />} />
+
+      <Route path="/map" element={<MapView />} />
+
+
+      {/* =================================================
+          REPORT CASE
+      ================================================= */}
+
+      
   
-const App = () => (      
-  
-    <div className="flex">
-      <Sidebar />  
-      <div className="flex-1 p-6">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/map" element={<MapView />} />
-          <Route path="/form/clinical_details" element={<ClinicalForm />} />
-          <Route path="/form/facility" element={<FacilityForm />} />
-          <Route path="/form/lab" element={<LabForm />} />
-          <Route path="/form/surveillance_info" element={<SurveillanceForm />} />
-          <Route path="/form/treatment" element={<TreatmentForm />} />  
-          <Route path="/form/epidemiological" element={<EpidemicsForm/>} />
-          <Route path="/form/demographics" element={<DemographicsForm/>} />
-          <Route path="/table/clinical_details" element={<ClinicalTablePage />} />
-          <Route path="/table/facility" element={<FacilityTablePage />} />  
-          <Route path="/table/lab" element={<LabTablePage />} />   
-          <Route path="/table/surveillance_info" element={<Surveillance_infoTablePage />} />   
-          <Route path="/table/treatment" element={<TreatmentTablePage />} />
-          <Route path="/table/demographics" element={<DemographicsTablePage />}  />
-          <Route path="/table/epidemiological" element={<EpidemicsTablePage/>} />  
-          <Route path="/report/demographics" element={<DemographicsReportPage />} />
-          <Route path="/report/clinical" element={<ClinicalReportPage />} />   
-          <Route path="/report/lab" element={<LabReportPage />} />       
-        </Routes>
-      </div>
-    </div>     
-     
-);
+
+
+      {/* =================================================
+          TABLES
+          Folder: pages/table/
+      ================================================= */}
+
+      <Route
+        path="/table"
+        element={<TableSidebar />}
+      />
+
+      <Route
+        path="/table/demographics"
+        element={<DemographicsTable />}
+      />
+
+      <Route
+        path="/table/clinical_details"
+        element={<ClinicalTable />}
+      />
+
+      <Route
+        path="/table/lab"
+        element={<LabTable />}
+      />
+
+      <Route
+        path="/table/facility"
+        element={<FacilityTable />}
+      />
+
+      <Route
+        path="/table/treatment"
+        element={<TreatmentTable />}
+      />
+
+      <Route
+        path="/table/surveillance_info"
+        element={<SurveillanceTable />}
+      />
+
+      <Route
+        path="/table/epidemiological"
+        element={<EpidemiologicalTable />}
+      />
+
+
+      {/* =================================================
+          REPORTS
+          Folder: pages/report/
+      ================================================= */}
+
+      <Route
+        path="/report"
+        element={<ReportSidebar />}
+      />
+
+      <Route
+        path="/report/clinical"
+        element={<ClinicalReport />}
+      />
+
+      <Route
+        path="/report/demographics"
+        element={<DemographicsReport />}
+      />
+
+      <Route
+        path="/report/lab"
+        element={<LabReport />}
+      />
+
+
+      {/* =================================================
+          FALLBACK
+      ================================================= */}
+
+      <Route
+        path="*"
+        element={<Navigate to="/" replace />}
+      />
+
+    </Routes>
+  );
+}
 
 export default App;

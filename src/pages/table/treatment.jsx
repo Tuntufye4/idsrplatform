@@ -1,72 +1,97 @@
-import React, { useEffect, useState } from 'react';
-import api from "../../api/api";
-  
-const TreatmentTablePage = () => {
-  const [treatment, setTreatment] = useState([]);
-  const [search, setSearch] = useState("");  
+import React, { useEffect, useMemo, useState } from 'react';
+import { getTreatment } from '../../api/api';
+     
+const TreatmentTable = () => {
+  const [treatments, setTreatments] = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {   
-    api.get('/treatment/').then(res => setTreatment(res.data));
+  useEffect(() => {
+    getTreatment()
+      .then((res) => setTreatments(res.data))
+      .catch((err) => console.error('Error loading treatment:', err))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Filter cases by search query
-  const filteredTreatment = treatment.filter((c) => {
+  const filtered = useMemo(() => {
     const query = search.toLowerCase();
-    return (
-      c.full_name?.toLowerCase().includes(query) ||
-      c.symptoms?.toLowerCase().includes(query) ||
-      c.disease?.toLowerCase().includes(query)
+
+    return treatments.filter((c) =>
+      Object.values(c).some((value) =>
+        String(value ?? '').toLowerCase().includes(query)
+      )
     );
-  });
+  }, [treatments, search]);
+
+  const columns = [
+    ['patient_id', 'Patient ID'],
+    ['treatment_given', 'Treatment'],
+    ['medication', 'Medication'],
+    ['dose', 'Dose'],
+    ['treatment_outcome', 'Outcome'],
+    ['treatment_status', 'Status'],
+  ];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* 🔍 Search Panel */}
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-[#003366]">Treatment Details</h2>
+      <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-5">
+        <div>
+          <h2 className="text-2xl font-bold text-teal-700">
+            Treatment
+          </h2>
+          <p className="text-sm text-gray-500">
+            Case treatment information
+          </p>
+        </div>
+
         <input
-          type="text"
-          placeholder="Search by name, district, or disease..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#003366] w-80"
+          placeholder="Search treatment records..."
+          className="w-full md:w-96 px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
       </div>
 
-      {/* Table */}   
-      <div className="overflow-x-auto shadow rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Treatment Given</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Procedures Done</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Follow Up Plan</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Referral Facility</th>
-            </tr>  
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredTreatment.map((c, i) => (
-              <tr key={i} className="hover:bg-gray-50 transition">   
-                <td className="px-4 py-2">{c.patient_id}</td>
-                <td className="px-4 py-2">{c.treatment_given}</td>
-                <td className="px-4 py-2">{c.procedures_done}</td>
-                <td className="px-4 py-2">{c.follow_up_plan}</td>
-                <td className="px-4 py-2">{c.referral_facility}</td>
-              </tr>   
-            ))}
-            {filteredTreatment.length === 0 && (
-              <tr>
-                <td colSpan="6" className="text-center px-4 py-6 text-gray-400">
-                  No Treatment details found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>    
+      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+        
+          <div className="overflow-x-auto">
+            <table className="min-w-[1000px] w-full">
+              <thead className="bg-teal-50">
+                <tr>
+                  {columns.map(([key, label]) => (
+                    <th
+                      key={key}
+                      className="px-4 py-3 text-left text-xs font-semibold uppercase text-teal-700"
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y">
+                {filtered.map((c, i) => (
+                  <tr key={c.id ?? i} className="hover:bg-teal-50/50">
+                    {columns.map(([key]) => (
+                      <td key={key} className="px-4 py-3">
+                        {c[key] ?? '-'}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+                
+
+        {!loading && filtered.length === 0 && (
+          <div className="p-10 text-center text-gray-400">
+            No treatment records found.
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default TreatmentTablePage;
+export default TreatmentTable;     

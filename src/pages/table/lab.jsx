@@ -1,78 +1,110 @@
-import React, { useEffect, useState } from 'react';
-import api from "../../api/api";
+import React, { useEffect, useMemo, useState } from 'react';
+import { getLab } from '../../api/api';
 
-const LabTablePage = () => {
-  const [lab, setLab] = useState([]);
-  const [search, setSearch] = useState("");
+const LabTable = () => {
+  const [labs, setLabs] = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+                                     
+  useEffect(() => {
+    const loadLabs = async () => {
+      try {
+        const res = await getLab();
+        setLabs(res.data);
+      } catch (error) {
+        console.error('Error loading laboratory data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {     
-    api.get('/lab/').then(res => setLab(res.data));
+    loadLabs();
   }, []);
 
-  // Filter cases by search query
-  const filteredLab = lab.filter((c) => {
-    const query = search.toLowerCase();
-    return (
-      c.full_name?.toLowerCase().includes(query) ||
-      c.case_source?.toLowerCase().includes(query) 
+  const filteredLabs = useMemo(() => {
+    const query = search.toLowerCase().trim();
+
+    return labs.filter((c) =>
+      [
+        c.patient_id,
+        c.specimen_collected,
+        c.specimen_type,
+        c.specimen_sent_to_lab,
+        c.lab_result,
+      ].some((value) =>
+        String(value ?? '').toLowerCase().includes(query)
+      )
     );
-  });
+  }, [labs, search]);
+
+  const columns = [
+    ['patient_id', 'Patient ID'],
+    ['specimen_collected', 'Specimen Collected'],
+    ['specimen_type', 'Specimen Type'],
+    ['specimen_sent_to_lab', 'Sent to Lab'],
+    ['lab_result', 'Lab Result'],
+  ];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* 🔍 Search Panel */}
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-[#003366]">Lab Details</h2>
+      <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-5">
+        <div>
+          <h2 className="text-2xl font-bold text-teal-700">
+            Laboratory
+          </h2>
+          <p className="text-sm text-gray-500">
+            Laboratory and specimen information
+          </p>
+        </div>
+
         <input
-          type="text"
-          placeholder="Search by name or case source..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#003366] w-80"
+          placeholder="Search laboratory records..."
+          className="w-full md:w-96 px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto shadow rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Specimen Collected</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Specimen Collected</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Specimen Type</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Lab Name</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Specimen Sent To Lab</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Lab Result</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Lab Tests Ordered</th> 
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredLab.map((c, i) => (
-              <tr key={i} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-2">{c.patient_id}</td>
-                <td className="px-4 py-2">{c.specimen_collected}</td>
-                <td className="px-4 py-2">{c.date_specimen_collected}</td>
-                <td className="px-4 py-2">{c.specimen_type}</td>
-                <td className="px-4 py-2">{c.lab_name}</td>
-                <td className="px-4 py-2">{c.specimen_sent_to_lab}</td>
-                <td className="px-4 py-2">{c.lab_result}</td>
-                <td className="px-4 py-2">{c.lab_tests_ordered}</td>   
-              </tr>
-            ))}
-            {filteredLab.length === 0 && (
-              <tr>
-                <td colSpan="6" className="text-center px-4 py-6 text-gray-400">
-                  No Lab details found.
-                </td>  
-              </tr>
-            )}
-          </tbody>
-        </table>    
+      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+         
+          <div className="overflow-x-auto">
+            <table className="min-w-[800px] w-full">
+              <thead className="bg-teal-50">
+                <tr>
+                  {columns.map(([key, label]) => (
+                    <th
+                      key={key}
+                      className="px-4 py-3 text-left text-xs font-semibold uppercase text-teal-700"
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y">
+                {filteredLabs.map((c, i) => (
+                  <tr key={c.id ?? i} className="hover:bg-teal-50/50">
+                    {columns.map(([key]) => (
+                      <td key={key} className="px-4 py-3">
+                        {c[key] ?? '-'}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        
+
+        {!loading && filteredLabs.length === 0 && (
+          <div className="p-10 text-center text-gray-400">
+            No laboratory records found.
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default LabTablePage;
-  
+export default LabTable;
