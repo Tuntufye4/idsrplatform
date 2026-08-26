@@ -292,4 +292,4 @@ const ClinicalReport = () => {
   );
 };
 
-export default ClinicalReport;
+export default ClinicalReport;   

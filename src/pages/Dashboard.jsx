@@ -6,7 +6,7 @@ import {
   Pie,
   Cell,
   XAxis,
-  YAxis,
+  YAxis,   
   Tooltip,       
   LineChart,
   Line,
@@ -754,4 +754,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Dashboard;   

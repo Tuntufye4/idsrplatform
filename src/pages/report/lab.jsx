@@ -292,4 +292,4 @@ const LabReport = () => {
   );
 };
 
-export default LabReport;             
+export default LabReport;                

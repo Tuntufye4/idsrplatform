@@ -135,4 +135,4 @@ const DemographicsTable = () => {
   );
 };
 
-export default DemographicsTable;
+export default DemographicsTable;    

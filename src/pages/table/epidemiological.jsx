@@ -82,4 +82,4 @@ const EpidemiologyTable = () => {
   );
 };
 
-export default EpidemiologyTable;
+export default EpidemiologyTable;   

@@ -91,4 +91,4 @@ const FacilityTable = () => {
   );
 };
 
-export default FacilityTable;         
+export default FacilityTable;            

@@ -3,13 +3,13 @@ import api from "../api/api";
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+export function AuthProvider({ children }) {    
+  const [user, setUser] = useState(null);     
   const [refreshIntervalId, setRefreshIntervalId] = useState(null);
 
-  // Load user on mount    
-  useEffect(() => {   
-    const token = localStorage.getItem("access");
+  // Load user on mount
+  useEffect(() => {
+    const token = localStorage.getItem("access");         
     const refresh = localStorage.getItem("refresh");
     const username = localStorage.getItem("username");
     const role = localStorage.getItem("role");
@@ -107,4 +107,4 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
-        
+    

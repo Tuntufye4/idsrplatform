@@ -107,4 +107,4 @@ const LabTable = () => {
   );
 };
 
-export default LabTable;
+export default LabTable;   

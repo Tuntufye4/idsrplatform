@@ -92,4 +92,4 @@ const SurveillanceTable = () => {
   );   
 };
 
-export default SurveillanceTable;          
+export default SurveillanceTable;             

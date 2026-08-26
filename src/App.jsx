@@ -1,23 +1,19 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./auth/AuthContext";
 
-// =====================================================         
-// AUTH      
 // =====================================================
-import Login from "./pages/login";     
-import Register from "./pages/register";       
-    
+// AUTH
 // =====================================================
-// MAIN    
+import Login from "./pages/login";
+import Register from "./pages/register";
+
+// =====================================================
+// MAIN
 // =====================================================
 import Select from "./pages/select";
-import Dashboard from "./pages/dashboard";        
-import MapView from "./pages/map";                         
-                                        
-// =====================================================
-// FORMS
-// =====================================================
-
+import Dashboard from "./pages/dashboard";
+import MapView from "./pages/map";
 
 // =====================================================
 // TABLES
@@ -41,7 +37,37 @@ import ClinicalReport from "./pages/report/clinical";
 import DemographicsReport from "./pages/report/demographics";
 import LabReport from "./pages/report/lab";
 
-function App() {
+// =====================================================
+// PRIVATE ROUTE
+// =====================================================
+function PrivateRoute({ children }) {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+// =====================================================
+// PUBLIC ROUTE
+// Prevent logged-in users from accessing login/register
+// =====================================================
+function PublicRoute({ children }) {
+  const { user } = useAuth();
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
+// =====================================================
+// APP
+// =====================================================
+export default function App() {
   return (
     <Routes>
 
@@ -49,100 +75,186 @@ function App() {
           AUTH
       ================================================= */}
 
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
 
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <Register />   
+          </PublicRoute>
+        }
+      />
 
       {/* =================================================
-          MAIN
+          HOME / SELECT
       ================================================= */}
 
-      <Route path="/" element={<Select />} />
-
-      <Route path="/dashboard" element={<Dashboard />} />
-
-      <Route path="/map" element={<MapView />} />
-
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <Select />
+          </PrivateRoute>
+        }
+      />
 
       {/* =================================================
-          REPORT CASE
+          DASHBOARD
       ================================================= */}
 
-      
-  
-
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        }
+      />
 
       {/* =================================================
-          TABLES
-          Folder: pages/table/
+          MAP
+      ================================================= */}
+
+      <Route
+        path="/map"
+        element={
+          <PrivateRoute>
+            <MapView />
+          </PrivateRoute>
+        }
+      />
+
+      {/* =================================================
+          TABLE SIDEBAR
       ================================================= */}
 
       <Route
         path="/table"
-        element={<TableSidebar />}
+        element={
+          <PrivateRoute>
+            <TableSidebar />
+          </PrivateRoute>
+        }
       />
+
+      {/* =================================================
+          TABLES
+      ================================================= */}
 
       <Route
         path="/table/demographics"
-        element={<DemographicsTable />}
+        element={
+          <PrivateRoute>
+            <DemographicsTable />
+          </PrivateRoute>
+        }
       />
 
       <Route
         path="/table/clinical_details"
-        element={<ClinicalTable />}
+        element={
+          <PrivateRoute>
+            <ClinicalTable />
+          </PrivateRoute>
+        }
       />
 
       <Route
         path="/table/lab"
-        element={<LabTable />}
+        element={
+          <PrivateRoute>
+            <LabTable />
+          </PrivateRoute>
+        }
       />
 
       <Route
         path="/table/facility"
-        element={<FacilityTable />}
+        element={
+          <PrivateRoute>
+            <FacilityTable />
+          </PrivateRoute>
+        }
       />
 
       <Route
         path="/table/treatment"
-        element={<TreatmentTable />}
+        element={
+          <PrivateRoute>
+            <TreatmentTable />
+          </PrivateRoute>
+        }
       />
 
       <Route
         path="/table/surveillance_info"
-        element={<SurveillanceTable />}
+        element={
+          <PrivateRoute>
+            <SurveillanceTable />
+          </PrivateRoute>
+        }
       />
 
       <Route
         path="/table/epidemiological"
-        element={<EpidemiologicalTable />}
+        element={
+          <PrivateRoute>
+            <EpidemiologicalTable />
+          </PrivateRoute>
+        }
       />
 
-
       {/* =================================================
-          REPORTS
-          Folder: pages/report/
+          REPORT SIDEBAR
       ================================================= */}
 
       <Route
         path="/report"
-        element={<ReportSidebar />}
+        element={
+          <PrivateRoute>
+            <ReportSidebar />
+          </PrivateRoute>
+        }
       />
+
+      {/* =================================================
+          REPORTS
+      ================================================= */}
 
       <Route
         path="/report/clinical"
-        element={<ClinicalReport />}
+        element={
+          <PrivateRoute>
+            <ClinicalReport />
+          </PrivateRoute>
+        }
       />
 
       <Route
         path="/report/demographics"
-        element={<DemographicsReport />}
+        element={
+          <PrivateRoute>
+            <DemographicsReport />
+          </PrivateRoute>
+        }
       />
 
       <Route
         path="/report/lab"
-        element={<LabReport />}
+        element={
+          <PrivateRoute>
+            <LabReport />
+          </PrivateRoute>
+        }
       />
-
 
       {/* =================================================
           FALLBACK
@@ -150,11 +262,9 @@ function App() {
 
       <Route
         path="*"
-        element={<Navigate to="/" replace />}
+        element={<Navigate to="/login" replace />}
       />
 
     </Routes>
   );
 }
-
-export default App;

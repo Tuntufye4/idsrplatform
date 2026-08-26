@@ -94,4 +94,4 @@ const TreatmentTable = () => {
   );
 };
 
-export default TreatmentTable;     
+export default TreatmentTable;        

@@ -614,7 +614,7 @@ const MapView = () => {
 
                 </tbody>
 
-              </table>
+              </table>   
 
             </div>
 

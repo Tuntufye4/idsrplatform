@@ -85,13 +85,7 @@ const SelectPage = () => {
                 <div className="mx-auto max-w-6xl">
                     {/* Welcome */}
                     <div className="mb-10 text-center">
-                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-600 shadow-lg shadow-teal-200">
-                            <ChartBarIcon className="h-9 w-9 text-white" />
-                        </div>
-
-                        <h2 className="text-3xl font-bold tracking-tight text-gray-800">
-                            IDSR Dashboard
-                        </h2>
+                        
 
                         <p className="mt-2 text-gray-500">
                             Select an area to continue
@@ -129,7 +123,7 @@ const SelectPage = () => {
                                     <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-teal-600">
                                         <span>Open</span>
 
-                                        <ArrowRightIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                                           
                                     </div>
                                 </button>
                             );
@@ -148,4 +142,4 @@ const SelectPage = () => {
     );
 };
 
-export default SelectPage;    
+export default SelectPage;        

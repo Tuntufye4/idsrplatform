@@ -126,4 +126,4 @@ const ClinicalTable = () => {
   );
 };
      
-export default ClinicalTable;   
+export default ClinicalTable;      
