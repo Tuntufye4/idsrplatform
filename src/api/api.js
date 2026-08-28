@@ -242,23 +242,23 @@ export const deleteTreatment = (id) =>
 // SURVEILLANCE
 // =====================================================
 
-export const getSurveillance = (params = {}) =>
-  api.get("/surveillance/", { params });
+export const getSurveillance = (params = {}) =>        
+  api.get("/surveillance_info/", { params });
 
 export const getSurveillanceCase = (id) =>
-  api.get(`/surveillance/${id}/`);
+  api.get(`/surveillance_info/${id}/`);
 
 export const createSurveillance = (data) =>
-  api.post("/surveillance/", data);
+  api.post("/surveillance_info/", data);
 
 export const updateSurveillance = (id, data) =>
-  api.put(`/surveillance/${id}/`, data);
+  api.put(`/surveillance_info/${id}/`, data);
 
 export const patchSurveillance = (id, data) =>
-  api.patch(`/surveillance/${id}/`, data);
-
+  api.patch(`/surveillance_info/${id}/`, data);
+            
 export const deleteSurveillance = (id) =>
-  api.delete(`/surveillance/${id}/`);
+  api.delete(`/surveillance_info/${id}/`);
 
 // =====================================================
 // EPIDEMIOLOGY
@@ -288,7 +288,7 @@ export const deleteEpidemiology = (id) =>
 
 export const getFormOptions = () =>
   api.get("/form-options/");
-
+    
 // =====================================================
 // API HEALTH / BASE
 // =====================================================

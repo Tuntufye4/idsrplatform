@@ -335,19 +335,7 @@ export default function Login() {
 
             {/* Heading */}
             <div className="mb-8">
-              <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 border border-teal-100 px-3 py-1.5 mb-4">
-                <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-
-                <span className="text-xs font-semibold text-teal-700 tracking-wide">
-                  SURVEILLANCE SYSTEM
-                </span>
-              </div>
-
-        
-
-              <p className="text-sm text-slate-500 mt-2">
-                Sign in to access your IDSR dashboard.
-              </p>
+             
             </div>
 
             {/* Error */}
@@ -478,7 +466,7 @@ export default function Login() {
                 
                   <span className="flex items-center justify-center gap-2">
                     Sign in
-                    <ArrowIcon />
+                   
                   </span>
                      
               </button>
@@ -516,4 +504,4 @@ export default function Login() {
       </main>
     </div>
   );
-}
+}   

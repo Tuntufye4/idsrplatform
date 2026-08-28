@@ -5,29 +5,38 @@ const SurveillanceTable = () => {
   const [records, setRecords] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-
+         
   useEffect(() => {
     getSurveillance()
-      .then((res) => setRecords(res.data))
+      .then((res) => setRecords(res.data))        
       .catch((err) => console.error('Error loading surveillance:', err))
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = useMemo(() => {
-    const query = search.toLowerCase();
+  const filteredRecords = useMemo(() => {
+    const query = search.toLowerCase().trim();
 
-    return records.filter((c) =>
-      Object.values(c).some((value) =>
+    return records.filter((c) =>   
+      [
+        c.patient_id,
+        c.notifier_signature,
+        c.reviewed_by,
+        c.supervisor_comments,
+        c.reporting_week,
+        c.year,           
+      ].some((value) =>
         String(value ?? '').toLowerCase().includes(query)
-      )
+      )    
     );
-  }, [records, search]);
+  }, [records, search]);    
 
   const columns = [
     ['patient_id', 'Patient ID'],
-    ['notifier_signature', 'Notifier'],
+    ['notifier_signature', 'Notifier'],                
     ['reviewed_by', 'Reviewed By'],
     ['supervisor_comments', 'Supervisor Comments'],
+    ['reporting_week_number', 'Reporting week'],
+    ['year', 'Year'],
   ];
 
   return (
@@ -35,7 +44,7 @@ const SurveillanceTable = () => {
       <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-5">
         <div>
           <h2 className="text-2xl font-bold text-teal-700">
-            Surveillance
+            Surveillance    
           </h2>
           <p className="text-sm text-gray-500">
             Surveillance and reporting information
@@ -68,7 +77,7 @@ const SurveillanceTable = () => {
               </thead>
 
               <tbody className="divide-y">
-                {filtered.map((c, i) => (
+                {filteredRecords.map((c, i) => (
                   <tr key={c.id ?? i} className="hover:bg-teal-50/50">
                     {columns.map(([key]) => (
                       <td key={key} className="px-4 py-3">
@@ -82,11 +91,11 @@ const SurveillanceTable = () => {
           </div>
          
 
-        {!loading && filtered.length === 0 && (
+        {!loading && filteredRecords.length === 0 && (
           <div className="p-10 text-center text-gray-400">
             No surveillance records found.
           </div>
-        )}
+        )}    
       </div>
     </div>
   );   

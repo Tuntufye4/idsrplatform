@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 function UserIcon({ className = "w-5 h-5" }) {
-  return (
+  return (    
     <svg
       className={className}
       fill="none"
@@ -135,7 +135,7 @@ function UserPlusIcon() {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M19 8v6m-3-3h6"
+        d="M19 8v6m-3-3h6"   
       />
     </svg>
   );
@@ -387,15 +387,7 @@ export default function Register() {
                   </svg>
                 </div>
 
-                <div>
-                  <p className="font-semibold">
-                    Connected teams
-                  </p>
-
-                  <p className="text-xs text-teal-100 mt-1">
-                    Collaborate across the health system
-                  </p>
-                </div>
+                
               </div>
 
               <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 p-4 flex items-center gap-4">
@@ -456,18 +448,7 @@ export default function Register() {
             </div>
 
             {/* Heading */}
-            <div className="mb-7">
-              <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 border border-teal-100 px-3 py-1.5 mb-4">
-                <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-
-                <span className="text-xs font-semibold text-teal-700 tracking-wide">
-                  CREATE ACCOUNT
-                </span>
-              </div>
-
-              <h2 className="text-3xl font-bold text-slate-900">
-                Join IDSR
-              </h2>
+            <div className="mb-7">   
 
               <p className="text-sm text-slate-500 mt-2">
                 Create your account to access the surveillance
@@ -714,9 +695,9 @@ export default function Register() {
                 className="w-full mt-2 rounded-xl bg-gradient-to-r from-teal-700 to-teal-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-teal-600/20 transition-all hover:from-teal-800 hover:to-teal-600 hover:shadow-xl hover:shadow-teal-600/25 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:from-teal-700 disabled:hover:to-teal-500"
               >
                
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="flex items-center justify-center gap-2">   
                     Create account
-                    <ArrowIcon />
+                
                   </span>
               
               </button>

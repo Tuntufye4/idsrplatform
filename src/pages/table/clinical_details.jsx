@@ -28,8 +28,7 @@ const ClinicalTable = () => {
 
     return clinical.filter((c) =>
       [
-        c.patient_id,
-        c.full_name,
+        c.patient_id,   
         c.disease,
         c.symptoms,
         c.case_classification,
@@ -76,14 +75,7 @@ const ClinicalTable = () => {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-        <div className="px-5 py-4 border-b">
-          <span className="font-semibold text-gray-700">
-            Clinical Records
-          </span>
-          <span className="ml-3 text-sm text-teal-600">
-            {filteredClinical.length} records
-          </span>
-        </div>
+        
 
         
           <div className="overflow-x-auto">

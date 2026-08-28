@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -6,8 +7,8 @@ import {
   Pie,
   Cell,
   XAxis,
-  YAxis,   
-  Tooltip,       
+  YAxis,
+  Tooltip,
   LineChart,
   Line,
   ResponsiveContainer,
@@ -19,6 +20,7 @@ import {
   getCases,
   getClinical,
   getFacilities,
+  getEpidemiology,
 } from "../api/api";
 
 // =====================================================
@@ -27,7 +29,6 @@ import {
 
 const TEAL = "#0f766e";
 const TEAL_LIGHT = "#14b8a6";
-const TEAL_DARK = "#115e59";
 
 const PIE_COLORS = [
   "#0f766e",
@@ -69,10 +70,19 @@ const getValue = (obj, keys) => {
   return "Unknown";
 };
 
+const normalize = (value) => String(value).trim().toLowerCase();
+
 const Dashboard = () => {
+  const navigate = useNavigate();
+
+  // =====================================================
+  // STATE
+  // =====================================================
+
   const [cases, setCases] = useState([]);
   const [clinical, setClinical] = useState([]);
   const [facilities, setFacilities] = useState([]);
+  const [epidemiology, setEpidemiology] = useState([]);
 
   const [yearFilter, setYearFilter] = useState("");
   const [sexFilter, setSexFilter] = useState("");
@@ -90,37 +100,61 @@ const Dashboard = () => {
     setErrorMessage("");
 
     try {
-      const [casesResponse, clinicalResponse, facilitiesResponse] =
-        await Promise.allSettled([
-          getCases(),
-          getClinical(),
-          getFacilities(),
-        ]);
+      const [
+        casesResponse,
+        clinicalResponse,
+        facilitiesResponse,
+        epidemiologyResponse,
+      ] = await Promise.allSettled([
+        getCases(),
+        getClinical(),
+        getFacilities(),
+        getEpidemiology(),
+      ]);
 
+      let failedRequests = 0;
+
+      // Cases
       if (casesResponse.status === "fulfilled") {
         setCases(getArray(casesResponse.value));
       } else {
+        failedRequests += 1;
         console.error("Cases error:", casesResponse.reason);
       }
 
+      // Clinical
       if (clinicalResponse.status === "fulfilled") {
         setClinical(getArray(clinicalResponse.value));
       } else {
+        failedRequests += 1;
         console.error("Clinical error:", clinicalResponse.reason);
       }
 
+      // Facilities
       if (facilitiesResponse.status === "fulfilled") {
         setFacilities(getArray(facilitiesResponse.value));
       } else {
+        failedRequests += 1;
         console.error("Facilities error:", facilitiesResponse.reason);
       }
 
-      if (
-        casesResponse.status === "rejected" &&
-        clinicalResponse.status === "rejected" &&
-        facilitiesResponse.status === "rejected"
-      ) {
+      // Epidemiology
+      if (epidemiologyResponse.status === "fulfilled") {
+        setEpidemiology(getArray(epidemiologyResponse.value));
+      } else {
+        failedRequests += 1;
+        console.error(
+          "Epidemiology error:",
+          epidemiologyResponse.reason
+        );
+      }
+
+      if (failedRequests === 4) {
         setErrorMessage("Unable to load dashboard data.");
+      } else if (failedRequests > 0) {
+        setErrorMessage(
+          "Some dashboard data could not be loaded."
+        );
       }
     } catch (error) {
       console.error("Dashboard error:", error);
@@ -139,25 +173,29 @@ const Dashboard = () => {
   // =====================================================
 
   const filteredCases = useMemo(() => {
-    return cases.filter((c) => {
+    return cases.filter((item) => {
       const year = String(
-        getValue(c, ["reporting_year", "year"])
+        getValue(item, ["reporting_year", "year"])
       );
 
       const sex = String(
-        getValue(c, ["sex", "gender"])
+        getValue(item, ["sex", "gender"])
       );
 
       const region = String(
-        getValue(c, ["region"])
+        getValue(item, ["region"])
       );
 
-      const matchYear = yearFilter ? year === yearFilter : true;
-      const matchSex = sexFilter
-        ? sex.toLowerCase() === sexFilter.toLowerCase()
+      const matchYear = yearFilter
+        ? year === yearFilter
         : true;
+
+      const matchSex = sexFilter
+        ? normalize(sex) === normalize(sexFilter)
+        : true;
+
       const matchRegion = regionFilter
-        ? region.toLowerCase() === regionFilter.toLowerCase()
+        ? normalize(region) === normalize(regionFilter)
         : true;
 
       return matchYear && matchSex && matchRegion;
@@ -169,14 +207,9 @@ const Dashboard = () => {
   // =====================================================
 
   const filteredClinical = useMemo(() => {
-    if (!clinical.length) return [];
-
     return clinical.filter((item) => {
       const year = String(
-        getValue(item, [
-          "reporting_year",
-          "year",
-        ])
+        getValue(item, ["reporting_year", "year"])
       );
 
       const sex = String(
@@ -187,14 +220,16 @@ const Dashboard = () => {
         getValue(item, ["region"])
       );
 
-      const matchYear = yearFilter ? year === yearFilter : true;
+      const matchYear = yearFilter
+        ? year === yearFilter
+        : true;
 
       const matchSex = sexFilter
-        ? sex.toLowerCase() === sexFilter.toLowerCase()
+        ? normalize(sex) === normalize(sexFilter)
         : true;
 
       const matchRegion = regionFilter
-        ? region.toLowerCase() === regionFilter.toLowerCase()
+        ? normalize(region) === normalize(regionFilter)
         : true;
 
       return matchYear && matchSex && matchRegion;
@@ -210,7 +245,9 @@ const Dashboard = () => {
   const totalDistricts = useMemo(() => {
     return new Set(
       filteredCases
-        .map((c) => getValue(c, ["district"]))
+        .map((item) =>
+          getValue(item, ["district"])
+        )
         .filter((value) => value !== "Unknown")
     ).size;
   }, [filteredCases]);
@@ -225,8 +262,11 @@ const Dashboard = () => {
     return [
       ...new Set(
         cases
-          .map((c) =>
-            getValue(c, ["reporting_year", "year"])
+          .map((item) =>
+            getValue(item, [
+              "reporting_year",
+              "year",
+            ])
           )
           .filter((year) => year !== "Unknown")
           .map(String)
@@ -235,22 +275,45 @@ const Dashboard = () => {
   }, [cases]);
 
   // =====================================================
+  // REGIONS
+  // =====================================================
+
+  const regions = useMemo(() => {
+    const caseRegions = cases
+      .map((item) =>
+        getValue(item, ["region"])
+      )
+      .filter((region) => region !== "Unknown");
+
+    const clinicalRegions = clinical
+      .map((item) =>
+        getValue(item, ["region"])
+      )
+      .filter((region) => region !== "Unknown");
+
+    return [...new Set([
+      ...caseRegions,
+      ...clinicalRegions,
+    ])].sort();
+  }, [cases, clinical]);
+
+  // =====================================================
   // CASES OVER TIME
   // =====================================================
 
   const chartData = useMemo(() => {
-    const grouped = filteredCases.reduce((acc, c) => {
-      const date = getValue(c, [
-        "date_reported",
-        "reporting_date",
-        "date",
+    const grouped = filteredCases.reduce((acc, item) => {
+      const date = getValue(item, [
+     
+        "date_of_onset",
+
       ]);
 
-      if (!acc[date]) {
-        acc[date] = 0;
+      if (date === "Unknown") {
+        return acc;
       }
 
-      acc[date] += 1;
+      acc[date] = (acc[date] || 0) + 1;
 
       return acc;
     }, {});
@@ -269,34 +332,29 @@ const Dashboard = () => {
 
   // =====================================================
   // DISEASE DATA
-  // USE BOTH CASES + CLINICAL
   // =====================================================
 
   const diseaseData = useMemo(() => {
     const grouped = {};
 
-    filteredCases.forEach((c) => {
-      const disease = getValue(c, [
+    filteredCases.forEach((item) => {
+      const disease = getValue(item, [
         "disease",
         "disease_name",
-        "condition",
       ]);
 
-      grouped[disease] = (grouped[disease] || 0) + 1;
+      if (disease !== "Unknown") {
+        grouped[disease] =
+          (grouped[disease] || 0) + 1;
+      }
     });
 
-    filteredClinical.forEach((c) => {
-      const disease = getValue(c, [
+    filteredClinical.forEach((item) => {
+      const disease = getValue(item, [
         "disease",
         "disease_name",
-        "condition",
-        "diagnosis",
       ]);
 
-      /*
-       * Only add clinical records when they contain
-       * a meaningful disease value.
-       */
       if (disease !== "Unknown") {
         grouped[disease] =
           (grouped[disease] || 0) + 1;
@@ -316,18 +374,53 @@ const Dashboard = () => {
   // =====================================================
 
   const districtData = useMemo(() => {
-    const grouped = filteredCases.reduce((acc, c) => {
-      const district = getValue(c, ["district"]);
+    const grouped = filteredCases.reduce(
+      (acc, item) => {
+        const district = getValue(item, [
+          "district",
+        ]);
 
-      acc[district] = (acc[district] || 0) + 1;
+        acc[district] =
+          (acc[district] || 0) + 1;
 
-      return acc;
-    }, {});
+        return acc;
+      },
+      {}
+    );
 
     return Object.entries(grouped)
+      .filter(([district]) => district !== "Unknown")
       .map(([district, count]) => ({
         district,
         count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [filteredCases]);
+
+
+   // =====================================================
+  // Region Data
+  // =====================================================
+  const regionData = useMemo(() => {
+    const grouped = filteredCases.reduce(
+      (acc, item) => {
+        const region = getValue(item, [
+          "region",
+        ]);
+
+        acc[region] =
+          (acc[region] || 0) + 1;
+
+        return acc;
+      },   
+      {}
+    );
+
+    return Object.entries(grouped)
+      .filter(([region]) => region !== "Unknown")
+      .map(([region, count]) => ({
+        region,
+        count,    
       }))
       .sort((a, b) => b.count - a.count);
   }, [filteredCases]);
@@ -337,282 +430,630 @@ const Dashboard = () => {
   // =====================================================
 
   const facilityData = useMemo(() => {
+    const grouped = filteredCases.reduce(
+      (acc, item) => {
+        const healthfacility = getValue(item, [
+          "health_facility_code",
+          "health_facility",
+          "facility",
+        ]);
+
+        acc[healthfacility] =
+          (acc[healthfacility] || 0) + 1;
+
+        return acc;
+      },
+      {}
+    );
+
+    return Object.entries(grouped)
+      .filter(([facility]) => facility !== "Unknown")
+      .map(([healthfacility, count]) => ({
+        healthfacility,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [filteredCases]);
+
+  // =====================================================
+  // CASE CLASSIFICATION
+  // =====================================================
+
+  const caseClassificationData = useMemo(() => {
     const grouped = {};
 
-    /*
-     * Prefer actual facility endpoint.
-     */
-    facilities.forEach((facility) => {
-      const name = getValue(facility, [
-        "name",
-        "facility_name",
-        "health_facility",
-        "facility",
+    filteredCases.forEach((item) => {
+      const classification = getValue(item, [
+        "case_classification",
+        "classification",
       ]);
 
-      if (name !== "Unknown") {
-        grouped[name] = grouped[name] || 0;
+      if (classification !== "Unknown") {
+        grouped[classification] =
+          (grouped[classification] || 0) + 1;
       }
     });
 
-    /*
-     * Count cases associated with facilities.
-     */
-    filteredCases.forEach((c) => {
-      const facility = getValue(c, [
-        "health_facility",
-        "facility",
-        "facility_name",
-        "health_facility_name",
+    filteredClinical.forEach((item) => {
+      const classification = getValue(item, [
+        "case_classification",
+        "classification",
       ]);
 
-      if (facility !== "Unknown") {
-        grouped[facility] =
-          (grouped[facility] || 0) + 1;
+      if (classification !== "Unknown") {
+        grouped[classification] =
+          (grouped[classification] || 0) + 1;
       }
     });
 
     return Object.entries(grouped)
-      .map(([facility, count]) => ({
-        facility,
+      .map(([case_classification, count]) => ({
+        case_classification,
         count,
       }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 15);
-  }, [facilities, filteredCases]);
+      .sort((a, b) => b.count - a.count);
+  }, [filteredCases, filteredClinical]);
 
   // =====================================================
-  // UI
+  // EPIDEMIOLOGY DATA
+  // =====================================================
+
+  const epidemiologyData = useMemo(() => {
+    const grouped = {};
+
+    epidemiology.forEach((item) => {
+      const disease = getValue(item, [
+        "disease",
+        "disease_name",
+      ]);
+
+      if (disease !== "Unknown") {
+        grouped[disease] =
+          (grouped[disease] || 0) + 1;
+      }
+    });
+
+    return Object.entries(grouped)
+      .map(([disease, count]) => ({
+        disease,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [epidemiology]);
+
+  // =====================================================
+  // CLEAR FILTERS
+  // =====================================================
+
+  const clearFilters = () => {
+    setYearFilter("");
+    setSexFilter("");
+    setRegionFilter("");
+  };
+
+  const hasFilters =
+    yearFilter ||
+    sexFilter ||
+    regionFilter;
+
+  // =====================================================
+  // RENDER
   // =====================================================
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
 
-      {/* HEADER */}
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div className="mb-6">
+
+        <button
+          type="button"
+          onClick={() => navigate("/select")}
+          className="
+            mb-5
+            inline-flex
+            items-center
+            gap-2
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            px-4
+            py-2.5
+            text-sm
+            font-semibold
+            text-slate-600
+            shadow-sm
+            transition-all
+            duration-200
+            hover:border-teal-200
+            hover:bg-teal-50
+            hover:text-teal-700
+            hover:shadow
+          "
+        >
+           Return to Menu
+        </button>
 
         <div>
-          <p className="text-sm font-medium text-teal-700">
-            Integrated Disease Surveillance and Response
-          </p>
+         
 
-          <h1 className="text-3xl font-bold text-slate-800">
-            Dashboard
-          </h1>
-
-          <p className="text-sm text-slate-500 mt-1">
-            Disease surveillance overview and reporting statistics
+          <p className="mt-1 text-sm text-slate-500">
+            Overview of reported cases, clinical records,
+            facilities and epidemiological information.
           </p>
         </div>
 
-                
       </div>
 
-      {/* ERROR */}
+      {/* =================================================
+          ERROR
+      ================================================= */}
 
       {errorMessage && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+        <div className="
+          mb-6
+          rounded-xl
+          border
+          border-red-200
+          bg-red-50
+          px-4
+          py-3
+          text-sm
+          text-red-700
+        ">
           {errorMessage}
         </div>
       )}
 
-      {/* SUMMARY CARDS */}
+      {/* =================================================
+          SUMMARY CARDS
+      ================================================= */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+      <div className="
+        mb-6
+        grid
+        grid-cols-1
+        gap-5
+        sm:grid-cols-2
+        lg:grid-cols-3
+      ">
 
-        <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
+        {/* Total Cases */}
+        <div className="
+          rounded-2xl
+          border
+          border-teal-100
+          bg-white
+          p-5
+          shadow-sm
+        ">
           <div className="flex items-center justify-between">
+
             <div>
               <p className="text-sm font-medium text-slate-500">
                 Total Cases
               </p>
 
-              <p className="text-3xl font-bold text-teal-700 mt-1">
+              <p className="mt-1 text-3xl font-bold text-teal-700">
                 {loading ? "—" : totalCases}
+              </p>
+
+              <p className="mt-1 text-xs text-slate-400">
+                Reported surveillance cases
               </p>
             </div>
 
-            <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 text-xl">
+            <div className="
+              flex
+              h-12
+              w-12
+              items-center
+              justify-center
+              rounded-xl
+              bg-teal-50
+              text-xl
+              font-bold
+              text-teal-700
+            ">
               ✓
             </div>
+
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
+        {/* Districts */}
+        <div className="
+          rounded-2xl
+          border
+          border-teal-100
+          bg-white
+          p-5
+          shadow-sm
+        ">
           <div className="flex items-center justify-between">
+
             <div>
               <p className="text-sm font-medium text-slate-500">
                 Districts
               </p>
 
-              <p className="text-3xl font-bold text-teal-700 mt-1">
+              <p className="mt-1 text-3xl font-bold text-teal-700">
                 {loading ? "—" : totalDistricts}
+              </p>
+
+              <p className="mt-1 text-xs text-slate-400">
+                Districts represented in cases
               </p>
             </div>
 
-            <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 text-xl">
+            <div className="
+              flex
+              h-12
+              w-12
+              items-center
+              justify-center
+              rounded-xl
+              bg-teal-50
+              text-xl
+              font-bold
+              text-teal-700
+            ">
               ◉
             </div>
+
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
+        {/* Facilities */}
+        <div className="
+          rounded-2xl
+          border
+          border-teal-100
+          bg-white
+          p-5
+          shadow-sm
+        ">
           <div className="flex items-center justify-between">
+
             <div>
               <p className="text-sm font-medium text-slate-500">
                 Health Facilities
               </p>
 
-              <p className="text-3xl font-bold text-teal-700 mt-1">
+              <p className="mt-1 text-3xl font-bold text-teal-700">
                 {loading ? "—" : totalFacilities}
+              </p>
+
+              <p className="mt-1 text-xs text-slate-400">
+                Facilities in the system
               </p>
             </div>
 
-            <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 text-xl">
+            <div className="
+              flex
+              h-12
+              w-12
+              items-center
+              justify-center
+              rounded-xl
+              bg-teal-50
+              text-xl
+              font-bold
+              text-teal-700
+            ">
               +
             </div>
+
           </div>
         </div>
 
       </div>
 
-      {/* FILTERS */}
+      {/* =================================================
+          FILTERS
+      ================================================= */}
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
+      <div className="
+        mb-6
+        rounded-2xl
+        border
+        border-slate-200
+        bg-white
+        p-5
+        shadow-sm
+      ">
 
-        <div className="flex items-center justify-between mb-4">
+        <div className="
+          mb-4
+          flex
+          flex-col
+          gap-3
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+        ">
+
           <div>
-            <h2 className="font-semibold text-slate-800">
-              Dashboard Filters
-            </h2>
+          
 
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="mt-1 text-xs text-slate-500">
               Filter cases and clinical information
             </p>
           </div>
 
-          {(yearFilter || sexFilter || regionFilter) && (
+          {hasFilters && (
             <button
-              onClick={() => {
-                setYearFilter("");
-                setSexFilter("");
-                setRegionFilter("");
-              }}
-              className="text-sm text-teal-700 hover:text-teal-900 font-medium"
+              type="button"
+              onClick={clearFilters}
+              className="
+                self-start
+                text-sm
+                font-medium
+                text-teal-700
+                transition
+                hover:text-teal-900
+              "
             >
               Clear filters
             </button>
           )}
+
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="
+          grid
+          grid-cols-1
+          gap-4
+          md:grid-cols-3
+        ">
 
-          <select
-            value={yearFilter}
-            onChange={(e) => setYearFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="">All Years</option>
+          {/* Year */}
+          <div>
+            <label className="
+              mb-1.5
+              block
+              text-xs
+              font-semibold
+              text-slate-600
+            ">
+              Reporting Year
+            </label>
 
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
+            <select
+              value={yearFilter}
+              onChange={(e) =>
+                setYearFilter(e.target.value)
+              }
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-3
+                py-2.5
+                text-sm
+                text-slate-700
+                focus:border-teal-500
+                focus:outline-none
+                focus:ring-2
+                focus:ring-teal-500/20
+              "
+            >
+              <option value="">
+                All Years
               </option>
-            ))}
-          </select>
 
-          <select
-            value={sexFilter}
-            onChange={(e) => setSexFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="">All Sex</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
+              {years.map((year) => (
+                <option
+                  key={year}
+                  value={year}
+                >
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <select
-            value={regionFilter}
-            onChange={(e) => setRegionFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="">All Regions</option>
+          {/* Sex */}
+          <div>
+            <label className="
+              mb-1.5
+              block
+              text-xs
+              font-semibold
+              text-slate-600
+            ">
+              Sex
+            </label>
 
-            {[
-              ...new Set(
-                cases
-                  .map((c) => getValue(c, ["region"]))
-                  .filter((r) => r !== "Unknown")
-              ),
-            ].map((region) => (
-              <option key={region} value={region}>
-                {region}
+            <select
+              value={sexFilter}
+              onChange={(e) =>
+                setSexFilter(e.target.value)
+              }
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-3
+                py-2.5
+                text-sm
+                text-slate-700
+                focus:border-teal-500
+                focus:outline-none
+                focus:ring-2
+                focus:ring-teal-500/20
+              "
+            >
+              <option value="">
+                All Sex
               </option>
-            ))}
-          </select>
+
+              <option value="Male">
+                Male
+              </option>
+
+              <option value="Female">
+                Female
+              </option>
+            </select>
+          </div>
+
+          {/* Region */}
+          <div>
+            <label className="
+              mb-1.5
+              block
+              text-xs
+              font-semibold
+              text-slate-600
+            ">
+              Region
+            </label>
+
+            <select
+              value={regionFilter}
+              onChange={(e) =>
+                setRegionFilter(e.target.value)
+              }
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-3
+                py-2.5
+                text-sm
+                text-slate-700
+                focus:border-teal-500
+                focus:outline-none
+                focus:ring-2
+                focus:ring-teal-500/20
+              "
+            >
+              <option value="">
+                All Regions
+              </option>
+
+              {regions.map((region) => (
+                <option
+                  key={region}
+                  value={region}
+                >
+                  {region}
+                </option>
+              ))}
+            </select>
+          </div>
 
         </div>
       </div>
 
-      {/* CHARTS */}
+      {/* =================================================
+          CHART GRID
+      ================================================= */}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="
+        grid
+        grid-cols-1
+        gap-6
+        xl:grid-cols-2
+      ">
 
-        {/* CASES OVER TIME */}
+        {/* =================================================
+            Cases By Region 
+        ================================================= */}
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+       <div className="
+          rounded-2xl
+          border
+          border-slate-200    
+          bg-white
+          p-5
+          shadow-sm
+        ">
 
           <h2 className="text-lg font-semibold text-slate-800">
-            Cases Over Time
+            Cases by Region
           </h2>
 
-          <p className="text-sm text-slate-500 mb-4">
-            Reported cases by reporting date
+          <p className="mb-4 text-sm text-slate-500">
+            Distribution of reported cases across region
           </p>
 
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={chartData}>
+          <ResponsiveContainer
+            width="100%"
+            height={320}
+          >
+            <BarChart data={regionData}>
+
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="#e2e8f0"
               />
 
               <XAxis
-                dataKey="date"
+                dataKey="region"
                 tick={{ fontSize: 11 }}
+                angle={-25}
+                textAnchor="end"
+                height={65}
               />
 
               <YAxis allowDecimals={false} />
 
               <Tooltip />
 
-              <Line
-                type="monotone"
+              <Bar
                 dataKey="count"
-                stroke={TEAL}
-                strokeWidth={3}
-                dot={{ r: 3 }}
-                activeDot={{ r: 6 }}
+                name="Cases"
+                fill={TEAL_LIGHT}
+                radius={[6, 6, 0, 0]}
               />
-            </LineChart>
-          </ResponsiveContainer>
+
+            </BarChart>
+          </ResponsiveContainer>    
+
         </div>
 
-        {/* CASES BY DISTRICT */}
+     
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+
+        {/* =================================================
+            CASES BY DISTRICT
+        ================================================= */}
+
+        <div className="
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          p-5
+          shadow-sm
+        ">
 
           <h2 className="text-lg font-semibold text-slate-800">
             Cases by District
           </h2>
 
-          <p className="text-sm text-slate-500 mb-4">
+          <p className="mb-4 text-sm text-slate-500">
             Distribution of reported cases across districts
           </p>
 
-          <ResponsiveContainer width="100%" height={320}>
+          <ResponsiveContainer
+            width="100%"
+            height={320}
+          >
             <BarChart data={districtData}>
+
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="#e2e8f0"
@@ -623,7 +1064,7 @@ const Dashboard = () => {
                 tick={{ fontSize: 11 }}
                 angle={-25}
                 textAnchor="end"
-                height={60}
+                height={65}
               />
 
               <YAxis allowDecimals={false} />
@@ -632,126 +1073,258 @@ const Dashboard = () => {
 
               <Bar
                 dataKey="count"
+                name="Cases"
                 fill={TEAL_LIGHT}
                 radius={[6, 6, 0, 0]}
               />
+
             </BarChart>
           </ResponsiveContainer>
+
         </div>
 
-        {/* DISEASE DISTRIBUTION */}
+        {/* =================================================
+            DISEASE DISTRIBUTION
+        ================================================= */}
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          p-5
+          shadow-sm
+        ">
 
           <h2 className="text-lg font-semibold text-slate-800">
             Disease Distribution
           </h2>
 
-          <p className="text-sm text-slate-500 mb-4">
+          <p className="mb-4 text-sm text-slate-500">
             Disease information from cases and clinical records
           </p>
 
-          <ResponsiveContainer width="100%" height={350}>
-            <PieChart>
+          {diseaseData.length > 0 ? (
+            <ResponsiveContainer
+              width="100%"
+              height={350}
+            >
+              <PieChart>
 
-              <Pie
-                data={diseaseData}
-                dataKey="count"
-                nameKey="disease"
-                cx="50%"
-                cy="50%"
-                outerRadius={120}
-                innerRadius={55}
-                paddingAngle={2}
-                label
-              >
-                {diseaseData.map((entry, index) => (
-                  <Cell
-                    key={`disease-${index}`}
-                    fill={
-                      PIE_COLORS[
-                        index % PIE_COLORS.length
-                      ]
-                    }
-                  />
-                ))}
-              </Pie>
+                <Pie
+                  data={diseaseData}
+                  dataKey="count"
+                  nameKey="disease"
+                  cx="50%"
+                  cy="45%"
+                  outerRadius={115}
+                  innerRadius={55}
+                  paddingAngle={2}
+                  label
+                >
+                  {diseaseData.map(
+                    (entry, index) => (
+                      <Cell
+                        key={`disease-${index}`}
+                        fill={
+                          PIE_COLORS[
+                            index %
+                              PIE_COLORS.length
+                          ]
+                        }
+                      />
+                    )
+                  )}
+                </Pie>
 
-              <Tooltip />
+                <Tooltip />
 
-              <Legend />
+                <Legend />
 
-            </PieChart>
-          </ResponsiveContainer>
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="
+              flex
+              h-[350px]
+              items-center
+              justify-center
+              text-sm
+              text-slate-400
+            ">
+              No disease data available.
+            </div>
+          )}
+
         </div>
 
-        {/* FACILITIES */}
+        {/* =================================================
+            CASE CLASSIFICATION
+        ================================================= */}
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          p-5
+          shadow-sm
+        ">
 
           <h2 className="text-lg font-semibold text-slate-800">
-            Cases by Health Facility
+            Case Classification
           </h2>
 
-          <p className="text-sm text-slate-500 mb-4">
-            Facilities reporting cases
+          <p className="mb-4 text-sm text-slate-500">
+            Classification of reported cases
           </p>
 
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart
-              data={facilityData}
-              layout="vertical"
-              margin={{
-                left: 20,
-                right: 20,
-              }}
+          {caseClassificationData.length > 0 ? (
+            <ResponsiveContainer
+              width="100%"
+              height={350}
             >
+              <PieChart>
 
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#e2e8f0"
-              />
+                <Pie
+                  data={caseClassificationData}
+                  dataKey="count"
+                  nameKey="case_classification"
+                  cx="50%"
+                  cy="45%"
+                  outerRadius={115}
+                  innerRadius={55}
+                  paddingAngle={2}
+                  label
+                >
+                  {caseClassificationData.map(
+                    (entry, index) => (
+                      <Cell
+                        key={`classification-${index}`}
+                        fill={
+                          PIE_COLORS[
+                            index %
+                              PIE_COLORS.length
+                          ]
+                        }
+                      />
+                    )
+                  )}
+                </Pie>
 
-              <XAxis
-                type="number"
-                allowDecimals={false}
-              />
+                <Tooltip />
 
-              <YAxis
-                type="category"
-                dataKey="facility"
-                width={130}
-                tick={{ fontSize: 11 }}
-              />
+                <Legend />
 
-              <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="
+              flex
+              h-[350px]
+              items-center
+              justify-center
+              text-sm
+              text-slate-400
+            ">
+              No classification data available.
+            </div>
+          )}
 
-              <Bar
-                dataKey="count"
-                fill={TEAL}
-                radius={[0, 6, 6, 0]}
-              />
-
-            </BarChart>
-          </ResponsiveContainer>
         </div>
+
+           
+        {/* =================================================
+            EPIDEMIOLOGY
+        ================================================= */}
+
+        {epidemiologyData.length > 0 && (
+          <div className="
+            rounded-2xl
+            border
+            border-slate-200
+            bg-white
+            p-5
+            shadow-sm
+            xl:col-span-2
+          ">
+
+            <h2 className="text-lg font-semibold text-slate-800">
+              Epidemiological Overview
+            </h2>
+
+            <p className="mb-4 text-sm text-slate-500">
+              Records available from the epidemiology dataset
+            </p>
+
+            <ResponsiveContainer
+              width="100%"
+              height={320}
+            >
+              <BarChart data={epidemiologyData}>
+
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#e2e8f0"
+                />
+
+                <XAxis
+                  dataKey="disease"
+                  tick={{ fontSize: 11 }}
+                  angle={-25}
+                  textAnchor="end"
+                  height={65}
+                />
+
+                <YAxis allowDecimals={false} />
+
+                <Tooltip />
+
+                <Bar
+                  dataKey="count"
+                  name="Records"
+                  fill={TEAL_LIGHT}
+                  radius={[6, 6, 0, 0]}
+                />
+
+              </BarChart>
+            </ResponsiveContainer>
+
+          </div>
+        )}
 
       </div>
 
-      {/* DATA STATUS */}
+      {/* =================================================
+          DATA STATUS
+      ================================================= */}
 
-      <div className="mt-6 bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 text-sm text-teal-800">
+      <div className="
+        mt-6
+        rounded-xl
+        border
+        border-teal-100
+        bg-teal-50
+        px-4
+        py-3
+        text-sm
+        text-teal-800
+      ">
+
         Showing{" "}
         <strong>{filteredCases.length}</strong>{" "}
         cases,{" "}
         <strong>{filteredClinical.length}</strong>{" "}
-        clinical records, and{" "}
+        clinical records,{" "}
         <strong>{facilities.length}</strong>{" "}
-        health facilities.
+        health facilities, and{" "}
+        <strong>{epidemiology.length}</strong>{" "}
+        epidemiological records.
+
       </div>
 
     </div>
   );
 };
 
-export default Dashboard;   
+export default Dashboard;

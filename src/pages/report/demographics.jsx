@@ -163,15 +163,7 @@ const DemographicsReport = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-          Demographics Report
-        </h1>
 
-        <p className="mt-1 text-sm text-gray-500">
-          Population and geographic distribution of reported cases.
-        </p>
-      </div>
 
       {/* Filters */}
       <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-100">

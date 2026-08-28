@@ -111,16 +111,7 @@ const LabReport = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-          Laboratory Report
-        </h1>
-
-        <p className="mt-1 text-sm text-gray-500">
-          Laboratory specimen and result surveillance summary.
-        </p>
-      </div>
+  
 
       {/* Filters */}
       <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
@@ -133,7 +124,7 @@ const LabReport = () => {
             <input
               type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => setStartDate(e.target.value)}    
               className="w-full rounded-xl border border-gray-200 px-4 py-2.5
                          focus:border-[#14B8A6]
                          focus:ring-2 focus:ring-[#14B8A6]/20

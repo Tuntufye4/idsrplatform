@@ -1,34 +1,40 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { getFacility } from '../../api/api';
+import { getFacilities } from '../../api/api';
 
-const FacilityTable = () => {
+const FacilityTable = () => {           
   const [facilities, setFacilities] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getFacility()
+  useEffect(() => {         
+    getFacilities()
       .then((res) => setFacilities(res.data))
       .catch((err) => console.error('Error loading facilities:', err))
       .finally(() => setLoading(false));
-  }, []);
-
-  const filtered = useMemo(() => {
+  }, []);        
+        
+  const filteredFacility = useMemo(() => {
     const query = search.toLowerCase().trim();
 
     return facilities.filter((c) =>
-      Object.values(c).some((value) =>
+      [
+        c.patient_id,
+        c.health_facility_code,
+        c.form_completed_by,
+        c.case_source,
+        c.reporting_method,         
+      ].some((value) =>
         String(value ?? '').toLowerCase().includes(query)
       )
-    );
+    );   
   }, [facilities, search]);
 
   const columns = [
-    ['patient_id', 'Patient ID'],
-    ['health_facility', 'Health Facility'],
-    ['facility_type', 'Facility Type'],
-    ['district', 'District'],
-    ['region', 'Region'],
+    ['patient_id', 'Patient ID'],   
+    ['health_facility_code', 'Health Facility'],
+    ['form_completed_by', 'Completed By'],
+    ['case_source', 'Case source'],
+    ['reporting_method', 'Reporting method'],   
   ];
 
   return (
@@ -67,7 +73,7 @@ const FacilityTable = () => {
               </thead>
 
               <tbody className="divide-y">
-                {filtered.map((c, i) => (
+                {filteredFacility.map((c, i) => (
                   <tr key={c.id ?? i} className="hover:bg-teal-50/50">
                     {columns.map(([key]) => (
                       <td key={key} className="px-4 py-3">
@@ -75,13 +81,13 @@ const FacilityTable = () => {
                       </td>
                     ))}
                   </tr>
-                ))}
+                ))}         
               </tbody>
             </table>
           </div>   
         
 
-        {!loading && filtered.length === 0 && (
+        {!loading && filteredFacility.length === 0 && (
           <div className="p-10 text-center text-gray-400">
             No facility records found.
           </div>

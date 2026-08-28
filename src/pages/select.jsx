@@ -28,7 +28,7 @@ const SelectPage = () => {
             icon: MapIcon,
         },
         {
-            title: "Tables / Lists",
+            title: "Lists",
             description: "Browse, search and review detailed case information.",
             path: "/table",
             icon: TableCellsIcon,         
@@ -119,12 +119,6 @@ const SelectPage = () => {
                                         {option.description}
                                     </p>
 
-                                    {/* Open */}
-                                    <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-teal-600">
-                                        <span>Open</span>
-
-                                           
-                                    </div>
                                 </button>
                             );
                         })}

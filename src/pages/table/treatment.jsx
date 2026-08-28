@@ -13,7 +13,7 @@ const TreatmentTable = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = useMemo(() => {
+  const filteredTreatment = useMemo(() => {
     const query = search.toLowerCase();
 
     return treatments.filter((c) =>
@@ -26,10 +26,9 @@ const TreatmentTable = () => {
   const columns = [
     ['patient_id', 'Patient ID'],
     ['treatment_given', 'Treatment'],
-    ['medication', 'Medication'],
-    ['dose', 'Dose'],
-    ['treatment_outcome', 'Outcome'],
-    ['treatment_status', 'Status'],
+    ['procedures_done', 'Procedures done'],
+    ['follow_up_plan', 'Follow up plan'],
+    ['referral_facility', 'Referral facility'],   
   ];
 
   return (
@@ -70,7 +69,7 @@ const TreatmentTable = () => {
               </thead>
 
               <tbody className="divide-y">
-                {filtered.map((c, i) => (
+                {filteredTreatment.map((c, i) => (
                   <tr key={c.id ?? i} className="hover:bg-teal-50/50">
                     {columns.map(([key]) => (
                       <td key={key} className="px-4 py-3">
@@ -78,13 +77,13 @@ const TreatmentTable = () => {
                       </td>
                     ))}
                   </tr>
-                ))}
+                ))}      
               </tbody>
             </table>
           </div>
                 
 
-        {!loading && filtered.length === 0 && (
+        {!loading && filteredTreatment.length === 0 && (
           <div className="p-10 text-center text-gray-400">
             No treatment records found.
           </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 
 // =====================================================
@@ -17,7 +17,6 @@ import MapView from "./pages/map";
 
 // =====================================================
 // TABLES
-// Folder: pages/table/
 // =====================================================
 import TableSidebar from "./pages/table/tablesidebar";
 import DemographicsTable from "./pages/table/demographics";
@@ -30,7 +29,6 @@ import EpidemiologicalTable from "./pages/table/epidemiological";
 
 // =====================================================
 // REPORTS
-// Folder: pages/report/
 // =====================================================
 import ReportSidebar from "./pages/report/reportsidebar";
 import ClinicalReport from "./pages/report/clinical";
@@ -52,7 +50,6 @@ function PrivateRoute({ children }) {
 
 // =====================================================
 // PUBLIC ROUTE
-// Prevent logged-in users from accessing login/register
 // =====================================================
 function PublicRoute({ children }) {
   const { user } = useAuth();
@@ -62,6 +59,38 @@ function PublicRoute({ children }) {
   }
 
   return children;
+}
+
+// =====================================================
+// TABLE LAYOUT
+// Sidebar remains visible while table pages change
+// =====================================================
+function TableLayout() {
+  return (
+    <div className="min-h-screen flex bg-gray-50">
+      <TableSidebar />
+
+      <main className="flex-1 min-w-0">
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
+// =====================================================
+// REPORT LAYOUT
+// Sidebar remains visible while report pages change
+// =====================================================
+function ReportLayout() {
+  return (
+    <div className="min-h-screen flex bg-gray-50">
+      <ReportSidebar />
+
+      <main className="flex-1 min-w-0">
+        <Outlet />
+      </main>
+    </div>
+  );
 }
 
 // =====================================================
@@ -86,15 +115,15 @@ export default function App() {
 
       <Route
         path="/register"
-        element={
+        element={   
           <PublicRoute>
-            <Register />   
+            <Register />
           </PublicRoute>
         }
       />
 
       {/* =================================================
-          HOME / SELECT
+          HOME
       ================================================= */}
 
       <Route
@@ -133,128 +162,90 @@ export default function App() {
       />
 
       {/* =================================================
-          TABLE SIDEBAR
+          TABLES
       ================================================= */}
 
       <Route
         path="/table"
         element={
           <PrivateRoute>
-            <TableSidebar />
+            <TableLayout />
           </PrivateRoute>
         }
-      />
+      >
+        <Route
+          index
+          element={<Navigate to="/table/demographics" replace />}
+        />
 
-      {/* =================================================
-          TABLES
-      ================================================= */}
+        <Route
+          path="demographics"
+          element={<DemographicsTable />}
+        />
 
-      <Route
-        path="/table/demographics"
-        element={
-          <PrivateRoute>
-            <DemographicsTable />
-          </PrivateRoute>
-        }
-      />
+        <Route
+          path="clinical_details"
+          element={<ClinicalTable />}
+        />
 
-      <Route
-        path="/table/clinical_details"
-        element={
-          <PrivateRoute>
-            <ClinicalTable />
-          </PrivateRoute>
-        }
-      />
+        <Route
+          path="lab"
+          element={<LabTable />}
+        />
 
-      <Route
-        path="/table/lab"
-        element={
-          <PrivateRoute>
-            <LabTable />
-          </PrivateRoute>
-        }
-      />
+        <Route
+          path="facility"
+          element={<FacilityTable />}
+        />
 
-      <Route
-        path="/table/facility"
-        element={
-          <PrivateRoute>
-            <FacilityTable />
-          </PrivateRoute>
-        }
-      />
+        <Route
+          path="treatment"
+          element={<TreatmentTable />}
+        />
 
-      <Route
-        path="/table/treatment"
-        element={
-          <PrivateRoute>
-            <TreatmentTable />
-          </PrivateRoute>
-        }
-      />
+        <Route
+          path="surveillance_info"
+          element={<SurveillanceTable />}
+        />
 
-      <Route
-        path="/table/surveillance_info"
-        element={
-          <PrivateRoute>
-            <SurveillanceTable />
-          </PrivateRoute>
-        }
-      />
-
-      <Route
-        path="/table/epidemiological"
-        element={
-          <PrivateRoute>
-            <EpidemiologicalTable />
-          </PrivateRoute>
-        }
-      />
-
-      {/* =================================================
-          REPORT SIDEBAR
-      ================================================= */}
-
-      <Route
-        path="/report"
-        element={
-          <PrivateRoute>
-            <ReportSidebar />
-          </PrivateRoute>
-        }
-      />
+        <Route
+          path="epidemiological"
+          element={<EpidemiologicalTable />}
+        />
+      </Route>
 
       {/* =================================================
           REPORTS
       ================================================= */}
 
       <Route
-        path="/report/clinical"
+        path="/report"
         element={
           <PrivateRoute>
-            <ClinicalReport />
+            <ReportLayout />
           </PrivateRoute>
         }
-      />
+      >
+        <Route
+          index
+          element={<Navigate to="/report/clinical" replace />}
+        />
 
-      <Route
-        path="/report/demographics"
-        element={
-          <PrivateRoute>
-            <DemographicsReport />
-          </PrivateRoute>
-        }
-      />
+        <Route
+          path="clinical"
+          element={<ClinicalReport />}
+        />
 
-      <Route
-        path="/report/lab"
-        element={
-          <PrivateRoute>
-            <LabReport />
-          </PrivateRoute>
-        }
-      />
+        <Route
+          path="demographics"
+          element={<DemographicsReport />}
+        />
+
+        <Route
+          path="lab"
+          element={<LabReport />}
+        />
+      </Route>
 
       {/* =================================================
           FALLBACK
@@ -262,9 +253,9 @@ export default function App() {
 
       <Route
         path="*"
-        element={<Navigate to="/login" replace />}
+        element={<Navigate to="/" replace />}
       />
 
     </Routes>
   );
-}
+}    

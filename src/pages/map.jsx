@@ -1,61 +1,51 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Tooltip as ReactTooltip } from "react-tooltip";
+import {
+  MapIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
+
 import "react-tooltip/dist/react-tooltip.css";
 
-import { getCases } from "../api/api";
+import { getCases } from "../api/api";   
 import MalawiOutline from "../assets/mw.svg";
+import location_coords from "../data/location_coords";          
 
 // =====================================================
-// THEME    
+// THEME
 // =====================================================
 
-const TEAL = "#0f766e";
-const TEAL_LIGHT = "#14b8a6";
-const TEAL_DARK = "#115e59";
+const RED = "#DC2626";
+const RED_DARK = "#991B1B";
 
 // =====================================================
-// MALAWI MAP BOUNDS
+// MALAWI GEOGRAPHIC BOUNDS
 // =====================================================
 
-const LON_MIN = 32.4;
-const LON_MAX = 36.0;
-const LAT_MIN = -17.3;
-const LAT_MAX = -9.1;
+const LON_MIN = 32.67;
+const LON_MAX = 35.93;
 
-const ASPECT_RATIO =
-  (LAT_MAX - LAT_MIN) / (LON_MAX - LON_MIN);
+const LAT_MIN = -17.13;
+const LAT_MAX = -9.37;
 
 // =====================================================
-// COORDINATE CONVERSION
+// SVG MAP CONTENT BOUNDS
 // =====================================================
 
-const lonLatToPercent = (lon, lat) => {
-  const longitude = Number(lon);
-  const latitude = Number(lat);
+const MAP_X_MIN = 31.4;
+const MAP_X_MAX = 68.5;
 
-  const x =
-    ((longitude - LON_MIN) /
-      (LON_MAX - LON_MIN)) *
-    100;
-
-  const y =
-    ((LAT_MAX - latitude) /
-      (LAT_MAX - LAT_MIN)) *
-    100;
-
-  return {
-    x: Math.max(0, Math.min(100, x)),
-    y: Math.max(0, Math.min(100, y)),
-  };
-};
+const MAP_Y_MIN = 4.5;
+const MAP_Y_MAX = 95.4;
 
 // =====================================================
 // VALUE HELPER
 // =====================================================
 
-const getValue = (obj, keys) => {
+const getValue = (object, keys) => {
   for (const key of keys) {
-    const value = obj?.[key];
+    const value = object?.[key];
 
     if (
       value !== undefined &&
@@ -70,24 +60,101 @@ const getValue = (obj, keys) => {
 };
 
 // =====================================================
-// MAP
+// NORMALIZE DISTRICT NAME
+// =====================================================
+
+const normalizeDistrict = (district) => {
+  if (!district) {
+    return "Unknown";
+  }
+
+  const value = String(district).trim();
+
+  const aliases = {
+    "Nkhata Bay": "NkhataBay",
+    "Nkhata-Bay": "NkhataBay",
+    "NkhataBay": "NkhataBay",
+
+    "Mzimba North": "Mzimba",
+    "Mzimba South": "Mzimba",
+
+    "Lilongwe City": "Lilongwe",
+    "Blantyre City": "Blantyre",
+    "Zomba City": "Zomba",
+  };
+
+  return aliases[value] || value;
+};
+
+// =====================================================
+// LONGITUDE / LATITUDE → SVG PERCENTAGE
+// =====================================================
+
+const lonLatToPercent = (longitude, latitude) => {
+  const lon = Number(longitude);
+  const lat = Number(latitude);
+
+  if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
+    return {
+      x: 50,
+      y: 50,
+    };
+  }
+
+  const normalizedX =
+    (lon - LON_MIN) /
+    (LON_MAX - LON_MIN);
+
+  const normalizedY =
+    (LAT_MAX - lat) /
+    (LAT_MAX - LAT_MIN);
+
+  const x =
+    MAP_X_MIN +
+    normalizedX *
+      (MAP_X_MAX - MAP_X_MIN);
+
+  const y =
+    MAP_Y_MIN +
+    normalizedY *
+      (MAP_Y_MAX - MAP_Y_MIN);
+
+  return {
+    x: Math.max(
+      MAP_X_MIN,
+      Math.min(MAP_X_MAX, x)
+    ),
+
+    y: Math.max(
+      MAP_Y_MIN,
+      Math.min(MAP_Y_MAX, y)
+    ),
+  };
+};
+
+// =====================================================
+// MAP VIEW
 // =====================================================
 
 const MapView = () => {
+  const navigate = useNavigate();
+
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   // ===================================================
-  // LOAD CASES
+  // LOAD CASES USING getCases()
   // ===================================================
 
   const loadCases = async () => {
     setLoading(true);
     setErrorMessage("");
-        
+
     try {
       const response = await getCases();
+
+      console.log("getCases() response:", response);
 
       const data = Array.isArray(response?.data)
         ? response.data
@@ -98,6 +165,7 @@ const MapView = () => {
       setCases(data);
     } catch (error) {
       console.error("Map error:", error);
+
       setErrorMessage(
         "Unable to load surveillance cases."
       );
@@ -117,39 +185,75 @@ const MapView = () => {
   const casesByLocation = useMemo(() => {
     const grouped = {};
 
-    cases.forEach((c) => {
+    cases.forEach((item) => {
+      const rawDistrict = getValue(item, [
+        "district",
+        "district_name",
+        "District",
+      ]);
+
       const district =
-        getValue(c, [
-          "district",
-          "district_name",
-        ]) || "Unknown";
+        normalizeDistrict(rawDistrict);
 
-      let lat = getValue(c, [
-        "lat",
-        "latitude",
-      ]);
+      // -----------------------------------------------
+      // USE location_coordinates
+      // -----------------------------------------------
 
-      let lng = getValue(c, [
-        "lng",
-        "longitude",
-        "lon",
-      ]);
+      const coordinates =
+        location_coords[district];
 
-      /*
-       * Fallback coordinates.
-       * These keep records visible even if the API
-       * does not contain coordinates.
-       */
-      lat = Number(lat);
-      lng = Number(lng);
+      let lat = null;
+      let lng = null;
+
+      if (
+        Array.isArray(coordinates) &&
+        coordinates.length >= 2
+      ) {
+        lat = Number(coordinates[0]);
+        lng = Number(coordinates[1]);
+      }
+
+      // -----------------------------------------------
+      // FALLBACK TO API GPS COORDINATES
+      // -----------------------------------------------
+
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ) {
+        lat = Number(
+          getValue(item, [
+            "lat",
+            "latitude",
+            "Latitude",
+          ])
+        );
+
+        lng = Number(
+          getValue(item, [
+            "lng",
+            "longitude",
+            "lon",
+            "Longitude",
+          ])
+        );
+      }
+
+      // -----------------------------------------------
+      // FINAL FALLBACK
+      // -----------------------------------------------
 
       if (!Number.isFinite(lat)) {
-        lat = -13.25;
+        lat = -13.9833;
       }
 
       if (!Number.isFinite(lng)) {
-        lng = 34.3;
+        lng = 33.7833;
       }
+
+      // -----------------------------------------------
+      // GROUP BY DISTRICT
+      // -----------------------------------------------
 
       if (!grouped[district]) {
         grouped[district] = {
@@ -161,105 +265,49 @@ const MapView = () => {
       }
 
       grouped[district].count += 1;
-
-      /*
-       * Keep the first valid coordinate for the district.
-       */
     });
 
     return Object.values(grouped);
   }, [cases]);
 
   // ===================================================
-  // MAP SCALE
+  // MAX CASE COUNT
   // ===================================================
 
-  const { transformStyle, scale } = useMemo(() => {
-    if (casesByLocation.length === 0) {
-      return {
-        transformStyle: {},
-        scale: 1,
-      };
+  const maxCases = useMemo(() => {
+    if (!casesByLocation.length) {
+      return 1;
     }
 
-    const lats = casesByLocation.map(
-      (location) => location.lat
+    return Math.max(
+      ...casesByLocation.map(
+        (location) => location.count
+      )
     );
-
-    const lngs = casesByLocation.map(
-      (location) => location.lng
-    );
-
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-
-    const minLng = Math.min(...lngs);
-    const maxLng = Math.max(...lngs);
-
-    const widthPercent =
-      ((maxLng - minLng) /
-        (LON_MAX - LON_MIN)) *
-      100;
-
-    const heightPercent =
-      ((maxLat - minLat) /
-        (LAT_MAX - LAT_MIN)) *
-      100;
-
-    /*
-     * Prevent division by zero when all records
-     * have the same coordinates.
-     */
-    const safeWidth = Math.max(widthPercent, 10);
-    const safeHeight = Math.max(heightPercent, 10);
-
-    const scaleX =
-      100 / (safeWidth * 1.1);
-
-    const scaleY =
-      100 / (safeHeight * 1.1);
-
-    const calculatedScale = Math.min(
-      scaleX,
-      scaleY,
-      1
-    );
-
-    const centerLng =
-      (minLng + maxLng) / 2;
-
-    const centerLat =
-      (minLat + maxLat) / 2;
-
-    const {
-      x: centerXPct,
-      y: centerYPct,
-    } = lonLatToPercent(
-      centerLng,
-      centerLat
-    );
-
-    const verticalOffsetPct = -15;
-
-    const translateX =
-      50 - centerXPct * calculatedScale;
-
-    const translateY =
-      50 -
-      centerYPct * calculatedScale +
-      verticalOffsetPct;
-
-    return {
-      transformStyle: {
-        transform: `scale(${calculatedScale}) translate(${translateX}%, ${translateY}%)`,
-        transformOrigin: "top left",
-      },
-      scale: calculatedScale,
-    };
   }, [casesByLocation]);
 
   // ===================================================
-  // TOTAL CASES
+  // MARKER SIZE
+  // ===================================================
+
+  const getMarkerSize = (count) => {
+    const minSize = 13;
+    const maxSize = 34;
+
+    if (maxCases <= 1) {
+      return minSize;
+    }
+
+    const ratio = count / maxCases;
+
+    return (
+      minSize +
+      ratio * (maxSize - minSize)
+    );
+  };
+
+  // ===================================================
+  // SUMMARY
   // ===================================================
 
   const totalCases = cases.length;
@@ -276,48 +324,151 @@ const MapView = () => {
 
       {/* HEADER */}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div className="mb-6">
 
-        <div>
-          <p className="text-sm font-medium text-teal-700">
-            IDSR Surveillance
-          </p>
+        <button
+          type="button"
+          onClick={() => navigate("/select")}
+          className="
+            mb-5
+            inline-flex
+            items-center
+            gap-2
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            px-4
+            py-2.5
+            text-sm
+            font-semibold
+            text-slate-600
+            shadow-sm
+            transition-all
+            duration-200
+            hover:border-teal-200
+            hover:bg-teal-50
+            hover:text-teal-700
+            hover:shadow
+          "
+        >
+          Return to Menu
+        </button>
 
-          <h1 className="text-3xl font-bold text-slate-800">
-            Cases Map
-          </h1>
+        <div className="flex items-start gap-3">
 
-          <p className="text-sm text-slate-500 mt-1">
-            Geographic distribution of reported cases across Malawi
-          </p>
-        </div>
+         
+
+          <div>
 
        
 
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              Geographic distribution of reported
+              surveillance cases across Malawi.
+            </p>
+
+          </div>
+
+        </div>
       </div>
 
       {/* SUMMARY */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-        <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
-          <p className="text-sm font-medium text-slate-500">
-            Total Cases
-          </p>
+        {/* TOTAL CASES */}
 
-          <p className="text-3xl font-bold text-teal-700 mt-1">
-            {loading ? "—" : totalCases}
-          </p>
+        <div
+          className="
+            rounded-2xl
+            border
+            border-red-100
+            bg-white
+            p-5
+            shadow-sm
+          "
+        >
+
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <p className="text-sm font-medium text-slate-500">
+                Total Cases
+              </p>
+
+              <p className="mt-1 text-3xl font-bold text-red-600">
+                { totalCases}
+              </p>
+   
+            </div>
+
+            <div
+              className="
+                flex
+                h-11
+                w-11
+                items-center
+                justify-center
+                rounded-xl
+                bg-red-50
+                text-red-600
+              "
+            >
+              <span className="text-lg">
+                ●
+              </span>
+            </div>
+
+          </div>
+
         </div>
 
-        <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
-          <p className="text-sm font-medium text-slate-500">
-            Districts Reporting
-          </p>
+        {/* DISTRICTS */}
 
-          <p className="text-3xl font-bold text-teal-700 mt-1">
-            {loading ? "—" : totalDistricts}
-          </p>
+        <div
+          className="
+            rounded-2xl
+            border
+            border-blue-100
+            bg-white
+            p-5
+            shadow-sm
+          "
+        >
+
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <p className="text-sm font-medium text-slate-500">
+                Districts Reporting
+              </p>
+
+              <p className="mt-1 text-3xl font-bold text-blue-700">
+                {totalDistricts}
+              </p>
+
+            </div>
+
+            <div
+              className="
+                flex
+                h-11
+                w-11
+                items-center
+                justify-center
+                rounded-xl
+                bg-purple-50
+                text-purple-700
+              "
+            >
+              <MapIcon className="h-6 w-6" />
+            </div>
+
+          </div>
+
         </div>
 
       </div>
@@ -325,66 +476,173 @@ const MapView = () => {
       {/* ERROR */}
 
       {errorMessage && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-          {errorMessage}
+        <div
+          className="
+            mb-6
+            flex
+            items-center
+            justify-between
+            gap-4
+            rounded-xl
+            border
+            border-red-200
+            bg-red-50
+            px-4
+            py-3
+          "
+        >
+
+          <div className="flex items-center gap-2">
+
+            <ExclamationTriangleIcon
+              className="h-5 w-5 text-red-600"
+            />
+
+            <p className="text-sm font-medium text-red-700">
+              {errorMessage}
+            </p>
+
+          </div>
+
+          <button
+            type="button"
+            onClick={loadCases}
+            className="
+              rounded-lg
+              bg-red-600
+              px-3
+              py-1.5
+              text-sm
+              font-semibold
+              text-white
+              transition
+              hover:bg-red-700
+            "
+          >
+            Retry
+          </button>
+
         </div>
       )}
 
       {/* MAP CARD */}
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div
+        className="
+          overflow-hidden
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          shadow-sm
+        "
+      >
 
-        <div className="px-5 py-4 border-b border-slate-200">
+        {/* MAP HEADER */}
 
-          <h2 className="text-lg font-semibold text-slate-800">
-            Cases by District
-          </h2>
+        <div
+          className="
+            border-b
+            border-slate-200
+            px-5
+            py-4
+          "
+        >
 
-          <p className="text-sm text-slate-500 mt-1">
-            Hover over a marker to view the number of reported cases.
-          </p>
+          <div
+            className="
+              flex
+              flex-col
+              gap-2
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+
+            <div>
+
+              <h2 className="text-lg font-semibold text-slate-800">
+                Cases by District
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Red markers show reported cases.
+                Larger markers indicate higher
+                case counts.
+              </p>
+
+            </div>
+
+            {!loading && cases.length > 0 && (
+              <span
+                className="
+                  inline-flex
+                  w-fit
+                  items-center
+                  rounded-full
+                  bg-blue-50
+                  px-3
+                  py-1
+                  text-xs
+                  font-semibold
+                  text-blue-700
+                "
+              >
+                {totalDistricts} reporting districts
+              </span>
+            )}
+
+          </div>
 
         </div>
 
         {/* MAP */}
 
-        <div className="p-4 md:p-6">
+        <div className="flex justify-center p-3 md:p-8">
 
           <div
-            className="relative w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-teal-100 bg-teal-50/30"
+            className="
+              relative
+              w-full
+              max-w-[720px]
+              overflow-hidden
+              rounded-2xl
+              border
+              border-purple-200
+              bg-gradient-to-br
+              from-purple-50
+              via-white
+              to-purple-50
+              shadow-inner
+            "
             style={{
-              minHeight: "500px",
+              aspectRatio: "1 / 1",
             }}
           >
 
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                paddingTop: `${ASPECT_RATIO * 60}%`,
-                minHeight: "500px",
-                overflow: "hidden",
-                ...transformStyle,
-              }}
-            >
+            {/* MALAWI SVG */}
 
-              <img
-                src={MalawiOutline}
-                alt="Map outline of Malawi"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  pointerEvents: "none",
-                }}
-              />
+            <img
+              src={MalawiOutline}
+              alt="Map outline of Malawi"
+              className="
+                absolute
+                inset-0
+                h-full
+                w-full
+                object-contain
+                select-none
+              "
+              draggable="false"
+            />
 
-              {/* CASE MARKERS */}
+            {/* CASE MARKERS */}
 
-              {casesByLocation.map(
+            {!loading &&
+              casesByLocation.map(
                 (location, index) => {
+
                   const {
                     x,
                     y,
@@ -393,54 +651,78 @@ const MapView = () => {
                     location.lat
                   );
 
-                  /*
-                   * Marker grows with case count,
-                   * but is capped to avoid huge markers.
-                   */
-                  const baseSize =
-                    10 +
-                    Math.min(
-                      location.count * 2,
-                      35
-                    );
-
                   const size =
-                    baseSize /
-                    Math.max(scale, 0.5);
+                    getMarkerSize(
+                      location.count
+                    );
 
                   const tooltipId =
                     `district-tooltip-${index}`;
+
+                  const label =
+                    `${location.district}: ${location.count} ${
+                      location.count === 1
+                        ? "case"
+                        : "cases"
+                    }`;
 
                   return (
                     <React.Fragment
                       key={`${location.district}-${index}`}
                     >
 
-                      <div
-                        data-tooltip-id={tooltipId}
-                        data-tooltip-content={`${location.district}: ${location.count} ${
-                          location.count === 1
-                            ? "case"
-                            : "cases"
-                        }`}
+                      {/* PULSE */}
+
+                      <span
+                        className="
+                          pointer-events-none
+                          absolute
+                          rounded-full
+                          bg-red-500/30
+                          animate-ping
+                        "
                         style={{
-                          position: "absolute",
                           left: `${x}%`,
                           top: `${y}%`,
-                          transform:
-                            "translate(-50%, -50%)",
                           width: `${size}px`,
                           height: `${size}px`,
-                          minWidth: "10px",
-                          minHeight: "10px",
-                          borderRadius: "50%",
-                          background:
-                            TEAL_LIGHT,
-                          border:
-                            `3px solid white`,
+                          transform:
+                            "translate(-50%, -50%)",
+                          zIndex: 5,
+                        }}
+                      />
+
+                      {/* MARKER */}
+
+                      <button
+                        type="button"
+                        aria-label={label}
+                        data-tooltip-id={tooltipId}
+                        data-tooltip-content={label}
+                        className="
+                          absolute
+                          rounded-full
+                          border-[3px]
+                          border-white
+                          shadow-xl
+                          transition-all
+                          duration-200
+                          hover:scale-125
+                          focus:outline-none
+                          focus:ring-2
+                          focus:ring-red-500
+                          focus:ring-offset-2
+                        "
+                        style={{
+                          left: `${x}%`,
+                          top: `${y}%`,
+                          width: `${size}px`,
+                          height: `${size}px`,
+                          transform:
+                            "translate(-50%, -50%)",
+                          backgroundColor: RED,
                           boxShadow:
-                            `0 2px 8px rgba(15,118,110,0.45)`,
-                          cursor: "pointer",
+                            "0 3px 12px rgba(220,38,38,0.50)",
                           zIndex: 10,
                         }}
                       />
@@ -448,17 +730,16 @@ const MapView = () => {
                       <ReactTooltip
                         id={tooltipId}
                         place="top"
+                        className="
+                          !rounded-lg
+                          !px-3
+                          !py-2
+                          !text-xs
+                          !font-semibold
+                          !shadow-xl
+                        "
                         style={{
-                          backgroundColor:
-                            TEAL_DARK,
-                          color: "white",
-                          borderRadius:
-                            "8px",
-                          fontSize:
-                            "13px",
-                          fontWeight:
-                            "500",
-                          zIndex: 100,
+                          backgroundColor: RED_DARK,
                         }}
                       />
 
@@ -467,44 +748,56 @@ const MapView = () => {
                 }
               )}
 
-            </div>
-
-            {/* LOADING */}
-
-            {loading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-
-                <div className="flex flex-col items-center gap-3">
-
-                  <div className="w-10 h-10 border-4 border-teal-100 border-t-teal-700 rounded-full animate-spin" />
-
-                  <p className="text-sm font-medium text-slate-600">
-                    Loading surveillance data...
-                  </p>
-
-                </div>
-
-              </div>
-            )}
+      
 
             {/* EMPTY */}
 
             {!loading &&
+              !errorMessage &&
               cases.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div
+                  className="
+                    absolute
+                    inset-0
+                    z-20
+                    flex
+                    items-center
+                    justify-center
+                  "
+                >
 
-                  <div className="text-center">
+                  <div
+                    className="
+                      max-w-sm
+                      px-6
+                      text-center
+                    "
+                  >
 
-                    <div className="text-4xl mb-3 text-teal-600">
-                      ◉
+                    <div
+                      className="
+                        mx-auto
+                        mb-4
+                        flex
+                        h-14
+                        w-14
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-purple-50
+                        text-purple-600
+                      "
+                    >
+                      <MapIcon className="h-7 w-7" />
                     </div>
 
                     <h3 className="font-semibold text-slate-700">
                       No cases found
                     </h3>
 
-                    <p className="text-sm text-slate-500 mt-1">
-                      There are currently no surveillance cases to display.
+                    <p className="mt-1 text-sm text-slate-500">
+                      There are currently no surveillance
+                      cases available to display.
                     </p>
 
                   </div>
@@ -520,108 +813,77 @@ const MapView = () => {
 
       {/* LEGEND */}
 
-      <div className="mt-5 bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4">
+      <div
+        className="
+          mt-5
+          rounded-xl
+          border
+          border-slate-200
+          bg-white
+          px-5
+          py-4
+          shadow-sm
+        "
+      >
 
-        <div className="flex flex-wrap items-center gap-6">
+        <div
+          className="
+            flex
+            flex-wrap
+            items-center
+            gap-x-8
+            gap-y-3
+          "
+        >
 
           <div className="flex items-center gap-2">
 
             <span
-              className="w-4 h-4 rounded-full border-2 border-white shadow"
+              className="
+                h-4
+                w-4
+                rounded-full
+                border-2
+                border-white
+                shadow
+              "
               style={{
-                backgroundColor:
-                  TEAL_LIGHT,
+                backgroundColor: RED,
               }}
             />
 
-            <span className="text-sm text-slate-600">
+            <span className="text-sm font-medium text-slate-600">
               Reported cases
             </span>
 
           </div>
 
-          <div className="text-sm text-slate-500">
-            Larger markers indicate more cases.
+          <div className="flex items-center gap-2">
+
+            <span
+              className="
+                h-3
+                w-3
+                rounded-full
+                bg-blue-500    
+              "
+            />
+
+            <span className="text-sm text-slate-500">
+              Malawi map
+            </span>
+
+          </div>
+
+          <div className="text-sm text-slate-500">   
+            Larger red markers indicate more cases.
           </div>
 
         </div>
 
       </div>
 
-      {/* DISTRICT LIST */}
-
-      {!loading &&
-        casesByLocation.length > 0 && (
-          <div className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-
-            <div className="px-5 py-4 border-b border-slate-200">
-
-              <h2 className="text-lg font-semibold text-slate-800">
-                District Summary
-              </h2>
-
-            </div>
-
-            <div className="overflow-x-auto">
-
-              <table className="w-full text-sm">
-
-                <thead className="bg-teal-50">
-
-                  <tr>
-                    <th className="text-left px-5 py-3 font-semibold text-teal-800">
-                      District
-                    </th>
-
-                    <th className="text-right px-5 py-3 font-semibold text-teal-800">
-                      Cases
-                    </th>
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  {[...casesByLocation]
-                    .sort(
-                      (a, b) =>
-                        b.count - a.count
-                    )
-                    .map(
-                      (location) => (
-                        <tr
-                          key={
-                            location.district
-                          }
-                          className="border-t border-slate-100 hover:bg-teal-50/50 transition"
-                        >
-
-                          <td className="px-5 py-3 text-slate-700">
-                            {location.district}
-                          </td>
-
-                          <td className="px-5 py-3 text-right">
-
-                            <span className="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-full bg-teal-100 text-teal-800 font-semibold">
-                              {location.count}
-                            </span>
-
-                          </td>
-
-                        </tr>
-                      )
-                    )}
-
-                </tbody>
-
-              </table>   
-
-            </div>
-
-          </div>
-        )}
-
-    </div>     
+    </div>
   );
 };
 

@@ -1,0 +1,270 @@
+districts:
+  - name: Chitipa
+    region: Northern
+    facilities:
+      - name: Chitipa District Hospital
+    traditional_authorities:
+      - name: TA Mwabulambya
+        villages:
+          - Village A
+          - Village B
+
+  - name: Karonga
+    region: Northern
+    facilities:
+      - name: Karonga District Hospital
+    traditional_authorities:
+      - name: TA Kyungu
+        villages:
+          - Village A
+          - Village B
+
+  - name: Nkhata Bay
+    region: Northern
+    facilities:
+      - name: Nkhata Bay District Hospital
+    traditional_authorities:
+      - name: TA Mkumbira
+        villages:
+          - Village A
+          - Village B
+
+  - name: Rumphi
+    region: Northern
+    facilities:
+      - name: Rumphi District Hospital
+    traditional_authorities:
+      - name: TA Chikulamayembe
+        villages:
+          - Village A
+          - Village B
+
+  - name: Mzimba
+    region: Northern
+    facilities:
+      - name: Mzimba District Hospital
+    traditional_authorities:
+      - name: TA Mzukuzuku
+        villages:
+          - Village A
+          - Village B
+
+  - name: Likoma
+    region: Northern
+    facilities:
+      - name: Likoma Health Centre
+    traditional_authorities:
+      - name: TA Mkumpha
+        villages:
+          - Village A
+          - Village B
+
+  - name: Kasungu
+    region: Central
+    facilities:
+      - name: Kasungu District Hospital
+    traditional_authorities:
+      - name: TA Chulu
+        villages:
+          - Village A
+          - Village B
+
+  - name: Nkhotakota
+    region: Central
+    facilities:
+      - name: Nkhotakota District Hospital
+    traditional_authorities:
+      - name: TA Mwansambo
+        villages:
+          - Village A
+          - Village B
+
+  - name: Ntchisi
+    region: Central
+    facilities:
+      - name: Ntchisi District Hospital
+    traditional_authorities:
+      - name: TA Kalumo
+        villages:
+          - Village A
+          - Village B
+
+  - name: Dowa
+    region: Central
+    facilities:
+      - name: Dowa District Hospital
+    traditional_authorities:
+      - name: TA Dzoole
+        villages:
+          - Village A
+          - Village B
+
+  - name: Salima
+    region: Central
+    facilities:
+      - name: Salima District Hospital
+    traditional_authorities:
+      - name: TA Maganga
+        villages:
+          - Village A
+          - Village B
+
+  - name: Mchinji
+    region: Central
+    facilities:
+      - name: Mchinji District Hospital
+    traditional_authorities:
+      - name: TA Mkanda
+        villages:
+          - Village A
+          - Village B
+
+  - name: Lilongwe
+    region: Central
+    facilities:
+      - name: Kamuzu Central Hospital
+    traditional_authorities:
+      - name: TA Tsabango
+        villages:
+          - Area 23
+          - Area 25
+
+  - name: Dedza
+    region: Central
+    facilities:
+      - name: Dedza District Hospital
+    traditional_authorities:
+      - name: TA Kachere
+        villages:
+          - Village A
+          - Village B
+
+  - name: Ntcheu
+    region: Central
+    facilities:
+      - name: Ntcheu District Hospital
+    traditional_authorities:
+      - name: TA Makwangwala
+        villages:
+          - Village A
+          - Village B
+
+  - name: Mangochi
+    region: Southern
+    facilities:
+      - name: Mangochi District Hospital
+    traditional_authorities:
+      - name: TA Mponda
+        villages:
+          - Village A
+          - Village B
+
+  - name: Machinga
+    region: Southern
+    facilities:
+      - name: Machinga District Hospital
+    traditional_authorities:
+      - name: TA Liwonde
+        villages:
+          - Village A
+          - Village B
+
+  - name: Zomba
+    region: Southern
+    facilities:
+      - name: Zomba Central Hospital
+    traditional_authorities:
+      - name: TA Malemia
+        villages:
+          - Village A
+          - Village B
+
+  - name: Chiradzulu
+    region: Southern
+    facilities:
+      - name: Chiradzulu District Hospital
+    traditional_authorities:
+      - name: TA Likoswe
+        villages:
+          - Village A
+          - Village B
+
+  - name: Blantyre
+    region: Southern  
+    facilities:
+      - name: Queen Elizabeth Central Hospital
+    traditional_authorities:
+      - name: TA Machinjiri
+        villages:
+          - Chilobwe
+          - Ndirande
+
+  - name: Mwanza
+    region: Southern
+    facilities:
+      - name: Mwanza District Hospital
+    traditional_authorities:
+      - name: TA Kanduku
+        villages:
+          - Village A
+          - Village B
+
+  - name: Neno
+    region: Southern
+    facilities:
+      - name: Neno District Hospital
+    traditional_authorities:
+      - name: TA Dambe
+        villages:
+          - Village A
+          - Village B
+
+  - name: Thyolo
+    region: Southern
+    facilities:
+      - name: Thyolo District Hospital
+    traditional_authorities:
+      - name: TA Changata
+        villages:
+          - Village A
+          - Village B
+
+  - name: Mulanje
+    region: Southern
+    facilities:
+      - name: Mulanje District Hospital
+    traditional_authorities:
+      - name: TA Mabuka
+        villages:
+          - Village A
+          - Village B
+
+  - name: Phalombe
+    region: Southern
+    facilities:
+      - name: Phalombe District Hospital
+    traditional_authorities:
+      - name: TA Chiwalo
+        villages:
+          - Village A
+          - Village B
+
+  - name: Chikwawa
+    region: Southern
+    facilities:
+      - name: Chikwawa District Hospital
+    traditional_authorities:
+      - name: TA Ngabu
+        villages:
+          - Village A
+          - Village B
+
+  - name: Nsanje
+    region: Southern
+    facilities:
+      - name: Nsanje District Hospital
+    traditional_authorities:
+      - name: TA Chimombo
+        villages:
+          - Village A
+          - Village B
