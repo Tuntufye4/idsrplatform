@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const BASE_URL = "http://127.0.0.1:8000/api/"; //https://idsr-backend.onrender.com/api/";
-
+const BASE_URL = "https://idsr-backend.onrender.com/api/";  //"http://127.0.0.1:8000/api/"; //https://idsr-backend.onrender.com/api/";
+   
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,     
